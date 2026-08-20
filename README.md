@@ -1,6 +1,6 @@
 
 
-```
+
 # DownloaderHub
 
 Aplikasi untuk mengunduh video dan audio dari **YouTube, Facebook, Instagram, TikTok, X (Twitter), dan Threads**. 
@@ -11,7 +11,6 @@ Mendukung pengunduhan *batch/playlist*, riwayat unduhan, penanaman metadata audi
 ![Node](https://img.shields.io/badge/Node.js-18%2B-green)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-yellow)
 
----
 
 ## Yang Perlu Disiapkan
 
