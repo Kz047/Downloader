@@ -55,7 +55,7 @@ Jika belum ada, gunakan *package manager* sesuai OS:
 
 ---
 
-## Cara Install
+## Cara Install Pada Linux/MacOS
 
 Buka terminal di folder proyek ini, lalu jalankan perintah berikut:
 
@@ -72,7 +72,7 @@ python -m pip install yt-dlp mutagen
 
 ## Cara Menjalankan
 
-### Opsi 1: Klik Ganda (Windows)
+### Opsi 1: Klik Dua Kali(Double Click) (Windows)
 
 Jalankan `dist/MediaDownloader.exe` atau `dist/start.bat`.
 
@@ -87,7 +87,77 @@ Bila muncul `Server running at http://localhost:3000`, buka *browser* dan akses 
 
 ---
 
-## Cara Pakai
+
+### 📱 Menjalankan DownloaderHub di Android (via Termux)
+
+Kamu juga bisa menjalankan aplikasi ini langsung di HP Android menggunakan aplikasi **Termux** tanpa harus menyalakan PC/Laptop.
+
+#### 1. Persiapan Awal di Termux
+
+Buka aplikasi Termux (pastikan mengunduh dari sumber resmi seperti F-Droid, bukan Play Store yang sudah usang). Lalu jalankan perintah berikut satu per satu:
+
+```bash
+# Update dan upgrade sistem Termux
+pkg update && pkg upgrade
+
+# Berikan izin akses penyimpanan (agar file hasil download bisa disimpan ke HP)
+termux-setup-storage
+
+# Install dependensi utama (Python, Node.js, Git, dan FFmpeg)
+pkg install python nodejs git ffmpeg
+
+```
+
+#### 2. Download (Clone) Repository dari GitHub
+
+Kloning repositori DownloaderHub yang sudah kamu buat langsung ke dalam Termux:
+
+```bash
+# Clone repo GitHub kamu (ganti URL jika diperlukan)
+git clone https://github.com/Kz047/Downloader.git
+
+# Masuk ke folder proyek
+cd Downloader
+
+```
+
+#### 3. Install Modul yang Dibutuhkan
+
+Instal pustaka Node.js dan pustaka Python (`yt-dlp` serta `mutagen`):
+
+```bash
+# Install paket Node.js
+npm install
+
+# Install yt-dlp dan mutagen untuk metadata audio
+pip install -U yt-dlp mutagen
+
+```
+
+#### 4. Menjalankan Server
+
+Nyalakan server aplikasi dengan perintah:
+
+```bash
+npm start
+
+```
+
+Jika berhasil, akan muncul tulisan:
+`Server running at http://localhost:3000`
+
+#### 5. Cara Mengakses
+
+Buka *browser* HP (seperti Chrome atau Firefox) dan ketik alamat berikut di *url bar*:
+
+```
+http://localhost:3000
+
+```
+
+Sekarang, DownloaderHub siap digunakan langsung dari HP Android kamu!
+
+---
 
 * **Smart Paste:** Salin tautan video/playlist. Di halaman web, kamu bisa langsung menekan `Ctrl+V` atau klik ikon **Paste** di dalam kolom pencarian. Link otomatis dikenali dan tombol platform akan menyala dengan warna *teal* (hijau toska).
 * **Fetch:** Sistem akan memproses media secara otomatis. Jika kamu memasukkan link *playlist*, antarmuka *Batch Selection* akan terbuka.
@@ -108,13 +178,11 @@ Bila muncul `Server running at http://localhost:3000`, buka *browser* dan akses 
 | **Download lambat** | Limitasi server sumber | Tunggu prosesnya, gunakan jaringan yang stabil. |
 
 ---
+## Catatan Tambahan
+Untuk Android Dapatkan Aplikasi Termux Pada [F-Droid](https://f-droid.org/packages/com.termux/) atau [GitHub Resmi Termux](https://github.com/termux/termux-app)
+
+
 
 ## Lisensi
 
 MIT — bebas pakai, modifikasi, dan distribusi.
-
-```
-
-Silakan *copy-paste* blok kode di atas langsung ke dalam file `README.md` di GitHub-mu. Apakah kamu mau lanjut mengemas UI ini ke proyek Capacitor Android-mu sekarang?
-
-```
