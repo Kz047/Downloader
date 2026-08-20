@@ -2,429 +2,727 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Media Downloader</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DownloaderHub - Media Downloader</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #0f0f11;
-  color: #e1e1e6;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.container {
-  width: 100%;
-  max-width: 720px;
-  padding: 40px 20px;
-}
-h1 {
-  font-size: 28px;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.subtitle {
-  text-align: center;
-  color: #888;
-  margin-bottom: 32px;
-  font-size: 14px;
-}
-.platforms {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-.platform-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  background: #1e1e24;
-  border: 1px solid #2a2a33;
-  color: #aaa;
-  transition: all .2s;
-}
-.platform-badge.active {
-  border-color: #667eea;
-  color: #fff;
-  background: #1a1a2e;
-  box-shadow: 0 0 12px rgba(102,126,234,.15);
-}
-.input-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.input-group input {
-  flex: 1;
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid #2a2a33;
-  background: #1a1a20;
-  color: #e1e1e6;
-  font-size: 15px;
-  outline: none;
-  transition: border .2s;
-}
-.input-group input:focus { border-color: #667eea; }
-.input-group input::placeholder { color: #555; }
-.btn {
-  padding: 14px 28px;
-  border-radius: 12px;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
-  white-space: nowrap;
-}
-.btn-primary {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
-}
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(102,126,234,.3); }
-.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
-.btn-download {
-  background: #1e1e24;
-  color: #e1e1e6;
-  border: 1px solid #2a2a33;
-  padding: 10px 20px;
-  font-size: 13px;
-}
-.btn-download:hover { background: #2a2a33; }
-.btn-audio { --accent: #22c55e; }
-.btn-video { --accent: #667eea; }
-.result-area {
-  margin-top: 24px;
-}
-.card {
-  background: #1a1a20;
-  border: 1px solid #2a2a33;
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 16px;
-  display: none;
-}
-.card.visible { display: block; }
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.card-thumb {
-  width: 64px;
-  height: 64px;
-  border-radius: 10px;
-  object-fit: cover;
-  background: #2a2a33;
-}
-.card-info { flex: 1; min-width: 0; }
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.card-meta {
-  font-size: 12px;
-  color: #888;
-  margin-top: 4px;
-}
-.card-meta span { margin-right: 12px; }
-.res-selector {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-.res-chip {
-  padding: 6px 16px;
-  border-radius: 8px;
-  border: 1px solid #2a2a33;
-  background: #1a1a20;
-  color: #aaa;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all .15s;
-}
-.res-chip:hover { border-color: #667eea; color: #fff; }
-.res-chip.selected {
-  border-color: #667eea;
-  background: #1a1a2e;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(102,126,234,.15);
-}
-.res-chip.audio-only {
-  border-color: #22c55e44;
-  color: #22c55e;
-}
-.download-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #2a2a33;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  display: none;
-}
-.spinner.active { display: inline-block; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.status-msg {
-  text-align: center;
-  font-size: 13px;
-  margin-top: 12px;
-  min-height: 20px;
-  color: #888;
-}
-.status-msg.error { color: #ef4444; }
-.status-msg.success { color: #22c55e; }
-@media (max-width: 520px) {
-  .input-group { flex-direction: column; }
-  .btn { text-align: center; }
-}
+  :root {
+    --bg-color: #0c151e;
+    --gradient-start: #0c151e;
+    --gradient-end: #1a1e26;
+    --card-bg: #1d2b38;
+    --accent-teal: #1cb5a2;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b959d;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-highlight: rgba(28, 181, 162, 0.3);
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --glass-effect: blur(12px) saturate(180%);
+    --spring-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+  body {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 680px;
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 40px rgba(0,0,0,0.4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    position: relative;
+  }
+
+  .status-bar-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; }
+  .hi-text { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+  .user-group { display: flex; align-items: center; gap: 12px; }
+  .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #444; border: 2px solid var(--border-color); }
+
+  .header-actions { display: flex; gap: 12px; }
+  .icon-btn {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
+    border-radius: 50%; width: 36px; height: 36px; display: flex;
+    align-items: center; justify-content: center; color: var(--text-primary);
+    cursor: pointer; transition: all 0.3s var(--spring-ease);
+  }
+  .icon-btn:hover { background: var(--accent-teal); color: #000; border-color: var(--accent-teal); transform: scale(1.05); }
+  .icon-btn:active { transform: scale(0.9); }
+
+  .title-section { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+  .main-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+  .media-count { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
+
+  .segmented-filter {
+    display: flex; background: rgba(0, 0, 0, 0.3); border-radius: 30px;
+    padding: 4px; border: 1px solid var(--border-color); margin-bottom: 12px;
+  }
+  .filter-option {
+    flex: 1; text-align: center; padding: 10px 12px; font-size: 13px;
+    color: var(--text-secondary); border-radius: 20px; cursor: pointer;
+    transition: all 0.4s var(--spring-ease); font-weight: 600; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .filter-option:hover { color: var(--text-primary); }
+  .filter-option:active { transform: scale(0.92); }
+  .filter-option.active { background: #000; color: var(--accent-teal); box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+
+  .search-input-group {
+    position: relative; display: flex; align-items: center;
+    background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color);
+    border-radius: 30px; padding: 6px; transition: border-color 0.4s var(--spring-ease), box-shadow 0.4s var(--spring-ease);
+  }
+  .search-input-group:focus-within { border-color: var(--accent-teal); box-shadow: 0 0 0 3px rgba(28, 181, 162, 0.15); }
+  .search-icon { color: var(--text-secondary); margin-left: 12px; flex-shrink: 0; }
+
+  .search-input-group input {
+    flex: 1; background: transparent; border: none; color: var(--text-primary);
+    font-size: 15px; padding: 12px; outline: none; min-width: 0;
+  }
+  .search-input-group input::placeholder { color: #52525b; transition: color 0.3s ease; }
+
+  /* Quick Action Buttons (Clear & Paste) */
+  .quick-actions {
+    display: flex; gap: 4px; margin-right: 8px; flex-shrink: 0;
+  }
+  .qa-btn {
+    background: transparent; border: none; color: var(--text-secondary);
+    cursor: pointer; width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s var(--spring-ease);
+  }
+  .qa-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.1); }
+  .qa-btn:active { transform: scale(0.9); }
+
+  .btn-fetch {
+    background: #000; color: var(--accent-teal); border: none; border-radius: 20px;
+    padding: 10px 20px; font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: all 0.3s var(--spring-ease); height: 100%; display: flex;
+    align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;
+  }
+  .btn-fetch:hover { background: #0a0a0a; box-shadow: 0 2px 8px rgba(28,181,162,0.2); }
+  .btn-fetch:active { transform: scale(0.95); }
+  .btn-fetch:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-icon { animation: spin 1s linear infinite; display: none; }
+
+  @keyframes popIn {
+    0% { opacity: 0; transform: translateY(40px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .result-card {
+    background: rgba(29, 43, 56, 0.8); border: 1px solid var(--border-highlight);
+    border-radius: var(--radius-lg); padding: 24px; display: none;
+    -webkit-backdrop-filter: var(--glass-effect); backdrop-filter: var(--glass-effect);
+    transform-origin: top center; overflow: hidden;
+  }
+  .result-card.visible { display: block; animation: popIn 0.8s var(--spring-ease) forwards; }
+
+  .media-summary { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; transition: all 0.4s var(--spring-ease); }
+
+  .media-preview-container {
+    position: relative; width: 90px; height: 90px; flex-shrink: 0;
+    border-radius: var(--radius-md); overflow: hidden; background: #000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid var(--border-color);
+  }
+  .media-thumb { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
+
+  .play-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.4s var(--spring-ease);
+  }
+  .media-preview-container:hover .play-overlay { background: rgba(0,0,0,0.4); }
+
+  .play-icon {
+    width: 36px; height: 36px; background: var(--accent-teal); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #000;
+    padding-left: 3px; opacity: 0; transform: scale(0.5);
+    transition: all 0.5s var(--spring-ease);
+  }
+  .media-preview-container:hover .play-icon { opacity: 1; transform: scale(1); }
+  .play-overlay:active .play-icon { transform: scale(0.8); }
+
+  .media-preview-container video, .media-preview-container audio {
+    width: 100%; height: 100%; object-fit: cover; display: none;
+  }
+  .media-preview-container.playing .media-thumb, .media-preview-container.playing .play-overlay { display: none; }
+  .media-preview-container.playing video, .media-preview-container.playing audio { display: block; }
+
+  .media-text-info { flex: 1; min-width: 0; }
+  .media-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .media-meta-row { font-size: 13px; color: var(--text-secondary); display: flex; gap: 12px; align-items: center; }
+
+  #platformLabel { color: var(--accent-teal); text-decoration: none; cursor: pointer; transition: color 0.2s ease, text-decoration 0.2s ease; }
+  #platformLabel:hover { color: var(--text-primary); text-decoration: underline; }
+
+  .playlist-container {
+    display: none; flex-direction: column; gap: 12px; margin-bottom: 24px;
+    background: rgba(0,0,0,0.2); border-radius: var(--radius-md); padding: 12px;
+    max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color);
+  }
+  .playlist-container.visible { display: flex; }
+  .playlist-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+  .playlist-checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-primary); }
+  .playlist-item { display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: var(--radius-sm); border: 1px solid transparent; transition: all 0.2s; }
+  .playlist-item:hover { background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.05); }
+  .playlist-item-title { flex: 1; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .playlist-item-duration { font-size: 12px; color: var(--text-secondary); }
+
+  .res-selection-group { background: rgba(0, 0, 0, 0.2); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; transition: all 0.4s var(--spring-ease); }
+  .section-label { font-size: 13px; font-weight: 600; color: var(--accent-teal); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .res-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 8px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary); cursor: pointer; transition: all 0.3s var(--spring-ease); }
+  .chip:hover { border-color: var(--text-primary); color: var(--text-primary); transform: translateY(-2px); }
+  .chip:active { transform: translateY(0) scale(0.95); }
+  .chip.selected { background: #000; color: var(--accent-teal); border-color: rgba(28, 181, 162, 0.4); font-weight: 700; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+  .download-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-action { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px; border-radius: var(--radius-md); border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s var(--spring-ease); }
+  .btn-action:active { transform: scale(0.96); }
+  .btn-action-video { background: #fff; color: #000; }
+  .btn-action-video:hover { background: #dcdfe4; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+  .btn-action-audio { background: #000; color: var(--accent-teal); border: 1px solid rgba(28, 181, 162, 0.2); }
+  .btn-action-audio:hover { background: #0c151e; box-shadow: 0 4px 15px rgba(28, 181, 162, 0.1); }
+
+  .status-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: rgba(0, 0, 0, 0.9); color: var(--text-primary); padding: 14px 28px;
+    border-radius: 40px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    transition: transform 0.6s var(--spring-ease); z-index: 100;
+    -webkit-backdrop-filter: var(--glass-effect); backdrop-filter: var(--glass-effect);
+  }
+  .status-toast.show { transform: translateX(-50%) translateY(0); }
+  .status-toast.success { border-bottom: 2px solid var(--accent-teal); }
+  .status-toast.error { border-bottom: 2px solid #ef4444; }
+
+  .history-panel {
+    position: fixed; top: 0; right: -350px; width: 320px; max-width: 100%; height: 100vh;
+    background: rgba(12, 21, 30, 0.95); border-left: 1px solid var(--border-color);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5); z-index: 200; transition: right 0.6s var(--spring-ease);
+    -webkit-backdrop-filter: var(--glass-effect); backdrop-filter: var(--glass-effect); display: flex; flex-direction: column;
+  }
+  .history-panel.open { right: 0; }
+  .history-header { padding: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+  .history-header h2 { font-size: 18px; font-weight: 700; color: var(--accent-teal); }
+  .close-history { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; transition: transform 0.2s; }
+  .close-history:hover { color: var(--text-primary); transform: scale(1.1); }
+  .close-history:active { transform: scale(0.9); }
+  .history-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .history-item { display: flex; gap: 12px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: pointer; transition: all 0.3s var(--spring-ease); }
+  .history-item:hover { background: rgba(0,0,0,0.5); border-color: var(--accent-teal); transform: translateX(-4px); }
+  .history-item-thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; background: #000; }
+  .history-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .history-item-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+  .history-item-meta { font-size: 11px; color: var(--text-secondary); display: flex; justify-content: space-between; }
+  .empty-history { text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 40px; }
+  .panel-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; opacity: 0; transition: opacity 0.4s var(--spring-ease); }
+  .panel-overlay.show { display: block; opacity: 1; }
+
+  @media (max-width: 480px) {
+    .download-action-row { grid-template-columns: 1fr; }
+    .segmented-filter { flex-wrap: wrap; border-radius: 16px; }
+    .filter-option { flex-basis: 30%; }
+  }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Media Downloader</h1>
-  <p class="subtitle">Download videos &amp; audio from your favorite platforms</p>
 
-  <div class="platforms" id="platforms">
-    <span class="platform-badge">YouTube</span>
-    <span class="platform-badge">Facebook</span>
-    <span class="platform-badge">Instagram</span>
-    <span class="platform-badge">TikTok</span>
-    <span class="platform-badge">X (Twitter)</span>
-    <span class="platform-badge">Threads</span>
+<div class="app-container">
+  <div class="status-bar-row">
+    <div class="user-group">
+      <img src="https://gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" class="user-avatar" alt="User Avatar">
+      <div class="hi-text">Hi, User</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="historyBtn" title="View History">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <div class="input-group">
-    <input type="url" id="urlInput" placeholder="Paste link here..." autofocus>
-    <button class="btn btn-primary" id="fetchBtn">Get Media</button>
+  <div class="title-section">
+    <div class="main-title">DownloaderHub</div>
+    <div class="media-count">Download Hub (6 platforms supported)</div>
   </div>
 
-  <div class="result-area">
-    <div class="card" id="resultCard">
-      <div class="card-header">
-        <img class="card-thumb" id="thumb" src="" alt="thumbnail">
-        <div class="card-info">
-          <div class="card-title" id="title">-</div>
-          <div class="card-meta">
-            <span id="platformLabel">-</span>
-            <span id="duration">-</span>
-            <span id="resolution">-</span>
-          </div>
+  <div class="segmented-filter" id="platforms">
+    <div class="filter-option active" data-platform="youtube">YouTube</div>
+    <div class="filter-option" data-platform="instagram">Instagram</div>
+    <div class="filter-option" data-platform="tiktok">TikTok</div>
+    <div class="filter-option" data-platform="x (twitter)">X (Twitter)</div>
+    <div class="filter-option" data-platform="facebook">Facebook</div>
+    <div class="filter-option" data-platform="threads">Threads</div>
+  </div>
+
+  <div class="search-input-group">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><path d="M10 13a5 5 0 0 0 7.54.12l1.35-1.35a5 5 0 0 0-7.54-7.54l-1.35 1.35a5 5 0 0 0 .12 7.54z"></path><path d="M14 11a5 5 0 0 0-7.54-.12l-1.35 1.35a5 5 0 0 0 7.54 7.54l1.35-1.35a5 5 0 0 0-.12-7.54z"></path></svg>
+    <input type="url" id="urlInput" placeholder="Paste YouTube link here..." autofocus>
+
+    <!-- Quick Action Buttons -->
+    <div class="quick-actions">
+      <button class="qa-btn" id="clearBtn" title="Clear Input" style="display: none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <button class="qa-btn" id="pasteBtn" title="Paste from Clipboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+      </button>
+    </div>
+
+    <button class="btn-fetch" id="fetchBtn">
+      <svg class="spinner-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+      </svg>
+      <span id="btnText">Fetch</span>
+    </button>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="media-summary">
+      <div class="media-preview-container" id="previewContainer">
+        <img class="media-thumb" id="thumb" src="" alt="Thumbnail">
+        <div class="play-overlay" id="playBtn">
+          <div class="play-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></div>
+        </div>
+        <video id="videoPreview" controls></video>
+      </div>
+
+      <div class="media-text-info">
+        <div class="media-title" id="title">-</div>
+        <div class="media-meta-row">
+          <a href="#" target="_blank" rel="noopener noreferrer" id="platformLabel">Platform</a>
+          <span id="duration">-</span>
         </div>
       </div>
-      <div class="res-selector" id="resSelector"></div>
-      <div class="download-actions" id="actions">
-        <button class="btn btn-download btn-video" data-type="video">Download Video</button>
-        <button class="btn btn-download btn-audio" data-type="audio">Download Audio</button>
-      </div>
     </div>
-    <div class="status-msg" id="statusMsg"></div>
+
+    <div class="playlist-container" id="playlistContainer">
+      <div class="playlist-header">
+        <span id="playlistCount">0 videos found</span>
+        <label class="playlist-checkbox-label">
+          <input type="checkbox" id="selectAllCheckbox" checked> Select All
+        </label>
+      </div>
+      <div id="playlistItems"></div>
+    </div>
+
+    <div class="res-selection-group" id="resSelectorGroup">
+      <div class="section-label">Select Video Quality</div>
+      <div class="res-chips" id="resSelector"></div>
+    </div>
+
+    <div class="download-action-row" id="actions">
+      <button class="btn-action btn-action-video" data-type="video" id="btnVideo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Save Video
+      </button>
+      <button class="btn-action btn-action-audio" data-type="audio" id="btnAudio">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        Save Audio
+      </button>
+    </div>
   </div>
 </div>
 
+<div class="panel-overlay" id="panelOverlay"></div>
+<div class="history-panel" id="historyPanel">
+  <div class="history-header">
+    <h2>Recent Downloads</h2>
+    <button class="close-history" id="closeHistory">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<div class="status-toast" id="statusToast"></div>
+
 <script>
-const PLATFORMS = ['youtube', 'facebook', 'instagram', 'tiktok', 'x', 'threads'];
+  let toastTimeout;
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('statusToast');
+    toast.textContent = msg;
+    toast.className = 'status-toast show ' + type;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
+  }
 
-function detectPlatform(url) {
-  const u = url.toLowerCase();
-  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
-  if (u.includes('facebook.com') || u.includes('fb.watch') || u.includes('fb.com')) return 'facebook';
-  if (u.includes('instagram.com') || u.includes('instagr.am')) return 'instagram';
-  if (u.includes('tiktok.com') || u.includes('vm.tiktok')) return 'tiktok';
-  if (u.includes('x.com') || u.includes('twitter.com')) return 'x';
-  if (u.includes('threads.net') || u.includes('threads.com')) return 'threads';
-  return null;
-}
+  function detectPlatform(url) {
+    const u = url.toLowerCase();
+    if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+    if (u.includes('facebook.com') || u.includes('fb.watch') || u.includes('fb.com')) return 'facebook';
+    if (u.includes('instagram.com') || u.includes('instagr.am')) return 'instagram';
+    if (u.includes('tiktok.com') || u.includes('vm.tiktok')) return 'tiktok';
+    if (u.includes('x.com') || u.includes('twitter.com')) return 'x (twitter)';
+    if (u.includes('threads.net') || u.includes('threads.com')) return 'threads';
+    return null;
+  }
 
-function highlightPlatform(name) {
-  const badges = document.querySelectorAll('.platform-badge');
-  badges.forEach(b => b.classList.remove('active'));
-  if (!name) return;
-  badges.forEach(b => {
-    if (b.textContent.toLowerCase().includes(name)) b.classList.add('active');
+  const filters = document.querySelectorAll('.filter-option');
+  const urlInput = document.getElementById('urlInput');
+  const fetchBtn = document.getElementById('fetchBtn');
+  const btnText = document.getElementById('btnText');
+  const spinnerIcon = document.querySelector('.spinner-icon');
+  const resultCard = document.getElementById('resultCard');
+
+  // Quick Actions Elements
+  const clearBtn = document.getElementById('clearBtn');
+  const pasteBtn = document.getElementById('pasteBtn');
+
+  const previewContainer = document.getElementById('previewContainer');
+  const thumb = document.getElementById('thumb');
+  const playBtn = document.getElementById('playBtn');
+  const videoPreview = document.getElementById('videoPreview');
+
+  const title = document.getElementById('title');
+  const platformLabel = document.getElementById('platformLabel');
+  const duration = document.getElementById('duration');
+
+  const playlistContainer = document.getElementById('playlistContainer');
+  const playlistItems = document.getElementById('playlistItems');
+  const playlistCount = document.getElementById('playlistCount');
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  const resSelectorGroup = document.getElementById('resSelectorGroup');
+  const resSelector = document.getElementById('resSelector');
+  const btnVideo = document.getElementById('btnVideo');
+  const btnAudio = document.getElementById('btnAudio');
+
+  let selectedFormatId = null;
+  let currentPreviewUrl = null;
+  let activeMediaData = null;
+  let isPlaylistMode = false;
+
+  // History System
+  const HISTORY_KEY = 'dlhub_history';
+  function loadHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; } catch { return []; } }
+  function saveToHistory(info, url) {
+    const history = loadHistory();
+    const newItem = {
+      id: Date.now(), title: info.title || 'Untitled', platform: detectPlatform(url) || 'Unknown',
+      url: url, thumbnail: info.thumbnail || '', date: new Date().toLocaleDateString()
+    };
+    const filtered = history.filter(item => item.url !== url);
+    filtered.unshift(newItem);
+    if (filtered.length > 20) filtered.pop();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = loadHistory();
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = '';
+    if (history.length === 0) { historyList.innerHTML = '<div class="empty-history">No recent downloads.</div>'; return; }
+    history.forEach(item => {
+      const el = document.createElement('div'); el.className = 'history-item';
+      el.innerHTML = `
+        <img src="${item.thumbnail}" class="history-item-thumb">
+        <div class="history-item-info">
+          <div class="history-item-title">${item.title}</div>
+          <div class="history-item-meta"><span style="color: var(--accent-teal); text-transform: capitalize;">${item.platform}</span><span>${item.date}</span></div>
+        </div>`;
+      el.addEventListener('click', () => {
+        closeHistoryPanel(); urlInput.value = item.url; checkInputState(); highlightPlatform(detectPlatform(item.url)); fetchMedia();
+      });
+      historyList.appendChild(el);
+    });
+  }
+
+  const historyPanel = document.getElementById('historyPanel');
+  const panelOverlay = document.getElementById('panelOverlay');
+  function openHistoryPanel() { renderHistory(); historyPanel.classList.add('open'); panelOverlay.classList.add('show'); }
+  function closeHistoryPanel() { historyPanel.classList.remove('open'); panelOverlay.classList.remove('show'); }
+  document.getElementById('historyBtn').addEventListener('click', openHistoryPanel);
+  document.getElementById('closeHistory').addEventListener('click', closeHistoryPanel);
+  panelOverlay.addEventListener('click', closeHistoryPanel);
+
+  // Search Bar / Filtering System
+  filters.forEach(filter => {
+    filter.addEventListener('click', () => {
+      const clickedPlatform = filter.dataset.platform;
+      const currentUrl = urlInput.value.trim();
+      const detected = detectPlatform(currentUrl);
+      if (currentUrl && detected && detected !== clickedPlatform) {
+        urlInput.value = '';
+        checkInputState();
+      }
+      filters.forEach(f => f.classList.remove('active')); filter.classList.add('active');
+      urlInput.placeholder = `Paste ${filter.textContent.trim()} link here...`; urlInput.focus();
+    });
   });
-}
 
-const urlInput = document.getElementById('urlInput');
-const fetchBtn = document.getElementById('fetchBtn');
-const resultCard = document.getElementById('resultCard');
-const thumb = document.getElementById('thumb');
-const title = document.getElementById('title');
-const platformLabel = document.getElementById('platformLabel');
-const duration = document.getElementById('duration');
-const resolution = document.getElementById('resolution');
-const resSelector = document.getElementById('resSelector');
-const actions = document.getElementById('actions');
-const statusMsg = document.getElementById('statusMsg');
-
-let selectedFormatId = null;
-
-urlInput.addEventListener('input', () => {
-  const p = detectPlatform(urlInput.value);
-  highlightPlatform(p);
-});
-
-fetchBtn.addEventListener('click', fetchMedia);
-urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') fetchMedia(); });
-
-async function fetchMedia() {
-  const url = urlInput.value.trim();
-  if (!url) {
-    setStatus('Please paste a link first.', 'error');
-    return;
-  }
-  const platform = detectPlatform(url);
-  if (!platform) {
-    setStatus('Unsupported platform. Try YouTube, Facebook, Instagram, TikTok, X, or Threads.', 'error');
-    return;
+  function highlightPlatform(name) {
+    if (!name) return;
+    filters.forEach(f => {
+      if (f.dataset.platform === name) {
+        filters.forEach(opt => opt.classList.remove('active')); f.classList.add('active');
+        f.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        urlInput.placeholder = `Paste ${f.textContent.trim()} link here...`;
+      }
+    });
   }
 
-    setStatus('', '');
-  fetchBtn.disabled = true;
-  fetchBtn.textContent = 'Processing...';
-  resultCard.classList.remove('visible');
+  function checkInputState() {
+    clearBtn.style.display = urlInput.value.trim() !== '' ? 'flex' : 'none';
+  }
 
-  let apiUrl = url;
-  if (platform === 'threads') apiUrl = apiUrl.replace(/threads\.com/i, 'threads.net');
+  // Handle manual typing
+  urlInput.addEventListener('input', () => {
+    checkInputState();
+    highlightPlatform(detectPlatform(urlInput.value));
+  });
 
-  try {
-    const res = await fetch('/api/info', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: apiUrl })
+  // Handle native "Paste" event (Smart Paste)
+  urlInput.addEventListener('paste', () => {
+    setTimeout(() => {
+      checkInputState();
+      highlightPlatform(detectPlatform(urlInput.value));
+      if (urlInput.value.trim() !== '') fetchMedia();
+    }, 50); // Tiny delay to allow input value to populate
+  });
+
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') fetchMedia(); });
+  fetchBtn.addEventListener('click', fetchMedia);
+
+  // Quick Actions Buttons
+  clearBtn.addEventListener('click', () => {
+    urlInput.value = '';
+    checkInputState();
+    urlInput.focus();
+    resultCard.classList.remove('visible'); // Hide card when clearing
+  });
+
+  pasteBtn.addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        urlInput.value = text;
+        checkInputState();
+        highlightPlatform(detectPlatform(text));
+        fetchMedia();
+      }
+    } catch (err) {
+      showToast('Clipboard permission denied. Please paste manually.', 'error');
+    }
+  });
+
+  // Preview Logic
+  playBtn.addEventListener('click', () => {
+    if (currentPreviewUrl) {
+      previewContainer.classList.add('playing');
+      videoPreview.src = currentPreviewUrl;
+      videoPreview.play();
+    } else {
+      showToast('Preview not available for this media', 'error');
+    }
+  });
+
+  videoPreview.addEventListener('error', () => {
+    previewContainer.classList.remove('playing');
+    playBtn.style.display = 'none';
+    currentPreviewUrl = null;
+    showToast('Preview stream is unavailable or unsupported by your browser.', 'error');
+  });
+
+  selectAllCheckbox.addEventListener('change', (e) => {
+    const checkboxes = playlistItems.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+  });
+
+  async function fetchMedia() {
+    const url = urlInput.value.trim();
+    if (!url) return showToast('Please paste a media link first.', 'error');
+    const platform = detectPlatform(url);
+    if (!platform) return showToast('Unsupported platform link. Try the listed ones.', 'error');
+
+    highlightPlatform(platform);
+    fetchBtn.disabled = true; btnText.textContent = 'Fetching...'; spinnerIcon.style.display = 'block';
+
+    previewContainer.classList.remove('playing');
+    videoPreview.pause(); videoPreview.removeAttribute('src'); currentPreviewUrl = null;
+    resultCard.classList.remove('visible');
+    void resultCard.offsetWidth;
+
+    let apiUrl = platform === 'threads' ? url.replace(/threads\.com/i, 'threads.net') : url;
+
+    try {
+      const res = await fetch('/api/info', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: apiUrl })
+      });
+
+      if (!res.ok) throw new Error((await res.json().catch(()=>({}))).error || 'Server error');
+      const data = await res.json();
+      activeMediaData = data;
+
+      thumb.src = data.thumbnail || 'https://via.placeholder.com/200';
+      title.textContent = data.title || 'Untitled Media';
+      platformLabel.textContent = platform.charAt(0).toUpperCase() + platform.slice(1);
+      platformLabel.href = url;
+
+      isPlaylistMode = data.isPlaylist;
+
+      if (isPlaylistMode) {
+        duration.textContent = `${data.entries.length} items`;
+        playlistContainer.classList.add('visible');
+        playlistCount.textContent = `${data.entries.length} videos found`;
+        playlistItems.innerHTML = '';
+        selectAllCheckbox.checked = true;
+
+        data.entries.forEach((entry, i) => {
+          const item = document.createElement('div');
+          item.className = 'playlist-item';
+          item.innerHTML = `
+            <input type="checkbox" id="pl_${i}" data-url="${entry.url}" checked>
+            <div class="playlist-item-title"><label for="pl_${i}">${entry.title}</label></div>
+            <div class="playlist-item-duration">${formatDuration(entry.duration)}</div>
+          `;
+          playlistItems.appendChild(item);
+        });
+
+        playBtn.style.display = 'none';
+        buildGenericResSelector();
+        btnVideo.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Batch Save Video`;
+        btnAudio.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg> Batch Save Audio`;
+
+      } else {
+        duration.textContent = data.duration ? formatDuration(data.duration) : '';
+        playlistContainer.classList.remove('visible');
+
+        const formats = data.formats || [];
+        const playableFormat = formats.find(f => f.ext === 'mp4' && f.vcodec !== 'none' && f.acodec !== 'none' && f.url);
+        if (playableFormat) {
+          currentPreviewUrl = playableFormat.url;
+          playBtn.style.display = 'flex';
+        } else {
+          playBtn.style.display = 'none';
+        }
+
+        buildResSelector(formats);
+        btnVideo.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Save Video`;
+        btnAudio.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg> Save Audio`;
+      }
+
+      resultCard.classList.add('visible');
+      showToast('Media found and ready!', 'success');
+    } catch (err) {
+      showToast(err.message || 'Failed to fetch media details.', 'error');
+    } finally {
+      fetchBtn.disabled = false; btnText.textContent = 'Fetch'; spinnerIcon.style.display = 'none';
+    }
+  }
+
+  function buildGenericResSelector() {
+    resSelector.innerHTML = '';
+    resSelectorGroup.style.display = 'block';
+    const genericFormats = ['1080p', '720p', '480p'];
+
+    genericFormats.forEach((res, index) => {
+      const el = document.createElement('div');
+      el.className = 'chip' + (index === 0 ? ' selected' : '');
+      if (index === 0) selectedFormatId = res;
+      el.textContent = res;
+      el.addEventListener('click', () => {
+        resSelector.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected'); selectedFormatId = res;
+      });
+      resSelector.appendChild(el);
+    });
+  }
+
+  function buildResSelector(formats) {
+    resSelector.innerHTML = '';
+    const seen = new Set(); const chips = [];
+    formats.forEach(f => {
+      if (f.resolution === 'audio' || seen.has(f.resolution)) return;
+      seen.add(f.resolution); chips.push(f);
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Server error (${res.status})`);
+    if (chips.length === 0) { resSelectorGroup.style.display = 'none'; return; }
+    resSelectorGroup.style.display = 'block';
+    chips.forEach((f, index) => {
+      const el = document.createElement('div');
+      el.className = 'chip' + (index === 0 ? ' selected' : '');
+      if (index === 0) selectedFormatId = f.format_id;
+      el.textContent = f.resolution;
+      el.addEventListener('click', () => {
+        resSelector.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected'); selectedFormatId = f.format_id;
+      });
+      resSelector.appendChild(el);
+    });
+  }
+
+  btnVideo.onclick = () => processDownload('video');
+  btnAudio.onclick = () => processDownload('audio');
+
+  function processDownload(type) {
+    if (!isPlaylistMode) {
+      downloadSingleMedia(urlInput.value.trim(), type, activeMediaData);
+    } else {
+      const checkboxes = playlistItems.querySelectorAll('input[type="checkbox"]:checked');
+      if (checkboxes.length === 0) return showToast('Please select at least one video', 'error');
+
+      showToast(`Batch download started: ${checkboxes.length} items. Check browser popups.`, 'success');
+      checkboxes.forEach((cb, index) => {
+        setTimeout(() => {
+          downloadSingleMedia(cb.dataset.url, type, { title: activeMediaData.entries[index]?.title });
+        }, index * 1500);
+      });
+      saveToHistory(activeMediaData, urlInput.value.trim());
+    }
+  }
+
+  function downloadSingleMedia(url, type, info) {
+    if(!isPlaylistMode) showToast('Starting download process...', '');
+    let dlUrl = detectPlatform(url) === 'threads' ? url.replace(/threads\.com/i, 'threads.net') : url;
+
+    const form = document.createElement('form'); form.method = 'POST'; form.action = '/api/download'; form.style.display = 'none';
+    const params = { url: dlUrl, type: type, filename: info.title || '' };
+    if (type === 'video' && selectedFormatId) params.format_id = selectedFormatId;
+
+    for (const key in params) {
+      const input = document.createElement('input'); input.type = 'hidden';
+      input.name = key; input.value = params[key]; form.appendChild(input);
     }
 
-    const data = await res.json();
+    document.body.appendChild(form); form.submit(); document.body.removeChild(form);
 
-    thumb.src = data.thumbnail || '';
-    title.textContent = data.title || 'Untitled';
-    platformLabel.textContent = platform.charAt(0).toUpperCase() + platform.slice(1);
-    duration.textContent = data.duration ? formatDuration(data.duration) : '';
-    resolution.textContent = data.resolution || '';
-
-    buildResSelector(data.formats || []);
-    selectedFormatId = null;
-
-    const btns = actions.querySelectorAll('.btn-download');
-    btns.forEach(btn => {
-      const type = btn.dataset.type;
-      btn.onclick = () => downloadMedia(url, type, data);
-    });
-
-    resultCard.classList.add('visible');
-    setStatus('Ready to download!', 'success');
-  } catch (err) {
-    setStatus(err.message || 'Failed to fetch media info.', 'error');
-  } finally {
-    fetchBtn.disabled = false;
-    fetchBtn.textContent = 'Get Media';
-  }
-}
-
-function buildResSelector(formats) {
-  resSelector.innerHTML = '';
-  const seen = new Set();
-  const chips = [];
-
-  formats.forEach(f => {
-    if (f.resolution === 'audio' || seen.has(f.resolution)) return;
-    seen.add(f.resolution);
-    chips.push(f);
-  });
-
-  if (chips.length === 0) {
-    resSelector.style.display = 'none';
-    return;
-  }
-
-  resSelector.style.display = 'flex';
-  chips.forEach(f => {
-    const el = document.createElement('span');
-    el.className = 'res-chip' + (f.resolution === 'audio' ? ' audio-only' : '');
-    el.textContent = f.resolution;
-    el.dataset.formatId = f.format_id;
-    el.addEventListener('click', () => {
-      resSelector.querySelectorAll('.res-chip').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedFormatId = f.format_id;
-    });
-    resSelector.appendChild(el);
-  });
-}
-
-async function downloadMedia(url, type, info) {
-  setStatus('Starting download...', '');
-  let dlUrl = url;
-  if (detectPlatform(url) === 'threads') dlUrl = dlUrl.replace(/threads\.com/i, 'threads.net');
-  const body = { url: dlUrl, type, filename: info.title || '' };
-  if (type === 'video' && selectedFormatId) body.format_id = selectedFormatId;
-  try {
-    const res = await fetch('/api/download', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `Download failed (${res.status})`);
+    if(!isPlaylistMode) {
+      saveToHistory(info, urlInput.value.trim());
+      setTimeout(() => { showToast('Download initiated! Check your browser downloads.', 'success'); }, 2000);
     }
-
-    // trigger file download
-    const blob = await res.blob();
-    const contentDisp = res.headers.get('Content-Disposition') || '';
-    const match = contentDisp.match(/filename="?(.+?)"?$/);
-    const filename = match ? match[1] : `${info.title || 'download'}.${type === 'audio' ? 'mp3' : 'mp4'}`;
-
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-
-    setStatus('Download complete!', 'success');
-  } catch (err) {
-    setStatus(err.message || 'Download failed.', 'error');
   }
-}
 
-function formatDuration(s) {
-  if (!s) return '';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${sec.toString().padStart(2, '0')}`;
-}
+  function formatDuration(s) {
+    if (!s) return '';
+    const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = Math.floor(s % 60);
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  }
 
-function setStatus(msg, type) {
-  statusMsg.textContent = msg;
-  statusMsg.className = 'status-msg' + (type ? ' ' + type : '');
-}
+  // Check input on load in case browser autofills
+  checkInputState();
+  renderHistory();
 </script>
 </body>
 </html>

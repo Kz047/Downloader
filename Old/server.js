@@ -11,20 +11,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(__dirname));
 
-const YT_DLP = [
-  'python', 
-  '-m', 
-  'yt_dlp',
-  '--user-agent',
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
-];
+const YT_DLP = ['python', '-m', 'yt_dlp'];
 
 function sanitizeFilename(name) {
-  // Removes characters that are illegal in Windows/Linux file paths, and strips newlines
-  return name.replace(/[<>:"/\\|?*\n\r]/g, '_').substring(0, 200);
+  return name.replace(/[<>:"/\\|?*]/g, '_').substring(0, 200);
 }
 
 function isThreads(url) {
@@ -44,7 +36,7 @@ async function threadsFetchInfo(url) {
     body: new URLSearchParams({ q: url, t: 'media', lang: 'en' })
   });
   const data = await resp.json();
-  if (data.status !== 'ok') throw new Error('Failed to fetch media from Threads');
+  if (data.status !== 'ok') throw new Error('Gagal mengambil media dari Threads');
   return data;
 }
 
@@ -79,7 +71,6 @@ app.post('/api/info', async (req, res) => {
       const firstVideo = videos[0] || {};
       const titleMatch = result.data.match(/<title[^>]*>([^<]+)<\/title>/i) || result.title;
       res.json({
-        isPlaylist: false,
         title: titleMatch ? titleMatch[1]?.trim() : 'Threads Video',
         thumbnail: firstVideo.thumbnail || '',
         duration: null,
@@ -100,10 +91,10 @@ app.post('/api/info', async (req, res) => {
     return;
   }
 
-  const args = [...YT_DLP, '--dump-single-json', '--no-download', '--flat-playlist', url];
+  const args = [...YT_DLP, '--dump-json', '--no-download', url];
   const proc = execFile(args[0], args.slice(1), {
-    timeout: 45000,
-    maxBuffer: 20 * 1024 * 1024
+    timeout: 30000,
+    maxBuffer: 10 * 1024 * 1024
   }, (err, stdout, stderr) => {
     if (err) {
       const msg = stderr.split('\n').filter(l => l.trim()).pop() || err.message;
@@ -111,27 +102,7 @@ app.post('/api/info', async (req, res) => {
     }
     try {
       const d = JSON.parse(stdout);
-      
-      if (d._type === 'playlist' || d.entries) {
-        const entries = (d.entries || [])
-          .filter(e => e.url || e.original_url || e.webpage_url || e.id)
-          .map(e => ({
-            id: e.id,
-            title: e.title || 'Untitled',
-            url: e.url || e.original_url || e.webpage_url || `https://www.youtube.com/watch?v=${e.id}`,
-            duration: e.duration || null
-          }));
-
-        return res.json({
-          isPlaylist: true,
-          title: d.title || 'Playlist',
-          thumbnail: d.thumbnails && d.thumbnails.length ? d.thumbnails[0].url : '',
-          entries: entries
-        });
-      }
-
       res.json({
-        isPlaylist: false,
         title: d.title || 'Untitled',
         thumbnail: d.thumbnail || '',
         duration: d.duration || null,
@@ -141,14 +112,11 @@ app.post('/api/info', async (req, res) => {
           format_id: f.format_id,
           ext: f.ext,
           resolution: f.height ? `${f.height}p` : 'audio',
-          filesize: f.filesize || f.filesize_approx || 0,
-          url: f.url,
-          vcodec: f.vcodec,
-          acodec: f.acodec
+          filesize: f.filesize || f.filesize_approx || 0
         }))
       });
     } catch (e) {
-      res.status(500).json({ error: 'Failed to parse media details.' });
+      res.status(500).json({ error: 'Failed to parse media info.' });
     }
   });
 });
@@ -164,18 +132,16 @@ app.post('/api/download', async (req, res) => {
       const result = await threadsFetchInfo(url);
       const videos = parseThreadsHtml(result.data || '');
       let videoUrl = videos[0]?.url;
-      if (format_id && format_id.startsWith('video_')) {
+      if (format_id) {
         const idx = parseInt(format_id.replace('video_', ''), 10);
         if (!isNaN(idx) && videos[idx]) videoUrl = videos[idx].url;
       }
-      if (!videoUrl) throw new Error('No valid video found for download');
+      if (!videoUrl) throw new Error('No video found');
 
       const resp = await fetch(videoUrl);
-      if (!resp.ok) throw new Error('Failed to fetch video file for download');
+      if (!resp.ok) throw new Error('Failed to fetch video');
 
-      // FIXED: Properly encode the filename for HTTP headers
-      const encodedFilename = encodeURIComponent(`${baseName}.mp4`);
-      res.setHeader('Content-Disposition', `attachment; filename="media.mp4"; filename*=UTF-8''${encodedFilename}`);
+      res.setHeader('Content-Disposition', `attachment; filename="${baseName}.mp4"`);
       res.setHeader('Content-Type', 'video/mp4');
       Readable.fromWeb(resp.body).pipe(res);
     } catch (e) {
@@ -189,10 +155,7 @@ app.post('/api/download', async (req, res) => {
 
   let args;
   if (type === 'audio') {
-    args = [...YT_DLP, '-x', '--audio-format', 'mp3', '--audio-quality', '0', '--embed-metadata', '--embed-thumbnail', '-o', tmpFile, url];
-  } else if (format_id && format_id.endsWith('p')) {
-    const height = format_id.replace('p', '');
-    args = [...YT_DLP, '-f', `bestvideo[height<=${height}]+bestaudio/best`, '--remux-video', 'mp4', '-o', tmpFile, url];
+    args = [...YT_DLP, '-x', '--audio-format', 'mp3', '--audio-quality', '0', '-o', tmpFile, url];
   } else if (format_id) {
     args = [...YT_DLP, '-f', `${format_id}+bestaudio[ext=m4a]/best[ext=mp4]`, '--remux-video', 'mp4', '-o', tmpFile, url];
   } else {
@@ -201,33 +164,28 @@ app.post('/api/download', async (req, res) => {
 
   const proc = spawn(args[0], args.slice(1), {
     stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 900000 
+    timeout: 600000
   });
 
   let stderrBuf = '';
   proc.stderr.on('data', (chunk) => { stderrBuf += chunk.toString(); });
 
   proc.on('error', () => {
-    res.status(500).json({ error: 'Failed to start download process on server.' });
+    res.status(500).json({ error: 'Failed to start download process.' });
     try { fs.unlinkSync(tmpFile); } catch (_) {}
   });
 
   proc.on('close', (code) => {
     if (code !== 0) {
-      const msg = stderrBuf.split('\n').filter(l => l.trim()).pop() || 'Internal Download failure';
+      const msg = stderrBuf.split('\n').filter(l => l.trim()).pop() || 'Download failed';
       res.status(400).json({ error: msg });
       try { fs.unlinkSync(tmpFile); } catch (_) {}
       return;
     }
-    
-    // FIXED: Properly encode the filename for HTTP headers
-    const encodedFilename = encodeURIComponent(`${baseName}.${ext}`);
-    res.setHeader('Content-Disposition', `attachment; filename="media.${ext}"; filename*=UTF-8''${encodedFilename}`);
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}.${ext}"`);
     res.setHeader('Content-Type', type === 'audio' ? 'audio/mpeg' : 'video/mp4');
-    
     const stream = fs.createReadStream(tmpFile);
     stream.pipe(res);
-    
     stream.on('end', () => {
       try { fs.unlinkSync(tmpFile); } catch (_) {}
     });
@@ -238,5 +196,5 @@ app.post('/api/download', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:3000`);
 });
