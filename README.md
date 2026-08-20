@@ -1,10 +1,13 @@
-# Media Downloader
 
-Aplikasi untuk mengunduh video dan audio dari **YouTube, Facebook, Instagram, TikTok, X (Twitter), dan Threads**.
 
-Cukup tempel link, pilih kualitas, lalu download — langsung dari browser.
+```
+# DownloaderHub
 
-![Preview](https://img.shields.io/badge/Platform-Web-blue)
+Aplikasi untuk mengunduh video dan audio dari **YouTube, Facebook, Instagram, TikTok, X (Twitter), dan Threads**. 
+
+Mendukung pengunduhan *batch/playlist*, riwayat unduhan, penanaman metadata audio (Album Art), dan antarmuka *Smart Paste* langsung dari browser.
+
+![Preview](https://img.shields.io/badge/Platform-Web-teal)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-green)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-yellow)
 
@@ -12,18 +15,16 @@ Cukup tempel link, pilih kualitas, lalu download — langsung dari browser.
 
 ## Yang Perlu Disiapkan
 
-Sebelum memulai, pastikan komputer sudah memiliki 3 hal ini:
+Sebelum memulai, pastikan komputer sudah terinstal 3 hal ini:
 
 ### 1. Node.js
-
-Cek dengan membuka **Command Prompt** atau **PowerShell**, ketik:
-
+Cek dengan membuka terminal atau *Command Prompt*, ketik:
 ```bash
 node --version
+
 ```
 
-Jika muncul angka seperti `v22.22.3` — berarti sudah ada.\
-Jika muncul `node not recognized` — download dan install dari https://nodejs.org (pipihkan tombol LTS).
+Jika muncul `node not recognized` — download dan install versi LTS dari https://nodejs.org.
 
 ### 2. Python
 
@@ -31,155 +32,89 @@ Cek dengan:
 
 ```bash
 python --version
+
 ```
 
-Harus muncul `Python 3.8` atau lebih baru.\
-Jika belum ada, download dari https://www.python.org/downloads/.\
-**Centang "Add Python to PATH" saat install.**
+Jika belum ada, download dari https://www.python.org/downloads/. **(Wajib centang "Add Python to PATH" saat install di Windows).**
 
-### 3. ffmpeg
+### 3. FFmpeg
 
 Cek dengan:
 
 ```bash
 ffmpeg -version
+
 ```
 
-Jika belum ada:
-- **Windows:** `winget install "FFmpeg (Essentials Build)"`
-- **macOS:** `brew install ffmpeg`
-- **Linux:** `sudo apt install ffmpeg`
+Jika belum ada, gunakan *package manager* sesuai OS:
 
-Atau download manual dari https://ffmpeg.org/download.html
+* **Windows:** `winget install "FFmpeg (Essentials Build)"`
+* **macOS:** `brew install ffmpeg`
+* **Linux (Debian/Ubuntu):** `sudo apt install ffmpeg`
+* **Linux (Arch/CachyOS):** `sudo pacman -S ffmpeg`
 
 ---
 
 ## Cara Install
 
-Buka **Command Prompt / PowerShell** di folder proyek ini, lalu jalankan perintah berikut satu per satu:
+Buka terminal di folder proyek ini, lalu jalankan perintah berikut:
 
 ```bash
-# 1. Install dependensi Node.js (express, cors, dll)
+# 1. Install dependensi Node.js
 npm install
 
-# 2. Install yt-dlp (mesin download untuk semua platform)
-python -m pip install yt-dlp
-```
+# 2. Install yt-dlp dan mutagen (wajib untuk fitur metadata audio / cover art)
+python -m pip install yt-dlp mutagen
 
-Tunggu sampai masing-masing selesai (tidak ada pesan error merah).
+```
 
 ---
 
 ## Cara Menjalankan
 
-### Opsi 1: Double-klik (Windows)
+### Opsi 1: Klik Ganda (Windows)
 
-Jalankan `dist/MediaDownloader.exe` atau `dist/start.bat` — langsung buka browser.
+Jalankan `dist/MediaDownloader.exe` atau `dist/start.bat`.
 
-### Opsi 2: Terminal
+### Opsi 2: Melalui Terminal
 
 ```bash
 npm start
-```
-
-Akan muncul tulisan:
 
 ```
-Server running at http://localhost:3000
-```
 
-Artinya server sudah nyala. Sekarang buka browser dan ketik:
-
-```
-http://localhost:3000
-```
+Bila muncul `Server running at http://localhost:3000`, buka *browser* dan akses alamat tersebut.
 
 ---
 
 ## Cara Pakai
 
-### 1. Tempel link
-
-Copy link video dari YouTube, TikTok, Instagram, Facebook, X, atau Threads.\
-Tempel ke kotak input di halaman web.
-
-Link otomatis dikenali — badge platform akan menyala (misal tulisan **YouTube** jadi biru).
-
-### 2. Klik "Get Media"
-
-Muncul thumbnail, judul, durasi, dan daftar resolusi (144p, 360p, 720p, 1080p, dst).
-
-### 3. Pilih resolusi (opsional)
-
-Klik salah satu chip kualitas, misal **720p** atau **1080p**.\
-Chip yang dipilih akan berubah warna menjadi biru.\
-Jika tidak memilih, sistem akan mengambil kualitas terbaik yang tersedia.
-
-### 4. Klik Download
-
-- **Download Video** → file `.mp4`
-- **Download Audio** → file `.mp3`
-
-File akan langsung terunduh ke komputer.
+* **Smart Paste:** Salin tautan video/playlist. Di halaman web, kamu bisa langsung menekan `Ctrl+V` atau klik ikon **Paste** di dalam kolom pencarian. Link otomatis dikenali dan tombol platform akan menyala dengan warna *teal* (hijau toska).
+* **Fetch:** Sistem akan memproses media secara otomatis. Jika kamu memasukkan link *playlist*, antarmuka *Batch Selection* akan terbuka.
+* **Pilih Resolusi:** Klik salah satu *chip* resolusi (misal 1080p). *Chip* terpilih akan menjadi hitam/teal. Jika tidak memilih, sistem akan mengunduh resolusi terbaik secara otomatis.
+* **Download:** Klik **Save Video** (.mp4) atau **Save Audio** (.mp3). File akan terunduh dengan metadata yang rapi.
+* **History:** Klik ikon jam di sudut kanan atas untuk melihat dan mengunduh ulang riwayat media sebelumnya.
 
 ---
 
 ## Troubleshooting
 
 | Masalah | Penyebab | Solusi |
-|---|---|---|
-| Muncul "Server error" setelah Get Media | Link tidak valid atau yt-dlp bermasalah | Cek link, pastikan video bisa diakses publik |
-| Download tidak dimulai | Cache browser lama | Tekan **Ctrl + F5** (hard refresh) |
-| Video tidak bisa diputar | Proses merge gagal | Coba pilih resolusi lebih rendah, atau jangan pilih resolusi (biar auto) |
-| Error "Python not found" | Python tidak terdaftar di PATH | Install ulang Python, centang "Add Python to PATH" |
-| Error "ffmpeg not found" | ffmpeg belum terinstal | Install ffmpeg (lihat panduan di atas) |
-| Download lambat | Ukuran file besar | Tunggu, atau pilih resolusi lebih rendah |
-| node_modules terlanjur di-push | Sudah terlacak git | `git rm -r --cached node_modules` lalu commit |
+| --- | --- | --- |
+| **Error "Unexpected response" di TikTok** | Pembaruan anti-bot dari TikTok | Kode sudah diperbarui untuk menggunakan *User-Agent* Chrome. Pastikan menggunakan kode `server.js` versi terbaru. |
+| **Server Crash saat nama file unik/emoji** | *Header HTTP* tidak valid | Kode telah menggunakan RFC 5987 (`UTF-8`) untuk penamaan file. Pastikan menggunakan `server.js` terbaru. |
+| **Video tidak bisa diputar** | Proses *merge* gagal | Coba pilih resolusi lebih rendah, atau biarkan kosong (auto). |
+| **Audio tidak memiliki Cover Art** | Modul `mutagen` belum terinstal | Jalankan `pip install mutagen` di terminal. |
+| **Download lambat** | Limitasi server sumber | Tunggu prosesnya, gunakan jaringan yang stabil. |
 
 ---
-
-## Struktur Folder
-
-```
-Downloader/
-├── index.html          Halaman web (tampilan)
-├── server.js           Backend (logika download)
-├── package.json        Daftar dependensi Node.js
-├── dist/               Launcher Windows
-│   ├── MediaDownloader.exe   EXE launcher
-│   ├── MediaDownloader.ps1   Script PowerShell
-│   └── start.bat             Batch file
-└── README.md           Dokumen ini
-```
-
----
-
-## Cara Kerja (untuk yang penasaran)
-
-```
-Browser ──→ Server (Node.js) ──→ yt-dlp ──→ YouTube / TikTok / dll
-                │
-                ↓
-         File dikirim ke browser
-                │
-                ↓
-         Tersimpan di komputer
-```
-
-1. Browser kirim link ke server
-2. Untuk YouTube/Facebook/Instagram/TikTok/X: server panggil **yt-dlp** (tool Python)
-3. Untuk **Threads**: server panggil API `lovethreads.net` sebagai proxy
-4. **ffmpeg** dipakai untuk menggabungkan video + audio (kalau terpisah) dan konversi ke MP3
-5. File dikirim ke browser, langsung terunduh
-
----
-
-## Catatan
-
-- **APK (Android):** Tidak tersedia. Aplikasi ini membutuhkan Node.js + Python + ffmpeg yang berjalan sebagai server — Android tidak mendukungnya secara native. Alternatif: jalankan server di PC, lalu akses dari browser HP di jaringan yang sama.
-- **node_modules** tidak di-push ke GitHub. Clone repo lalu jalankan `npm install` untuk menginstal dependensi.
-- **Threads** tidak didukung yt-dlp langsung. Server menggunakan `lovethreads.net` sebagai proxy untuk mengambil video.
 
 ## Lisensi
 
 MIT — bebas pakai, modifikasi, dan distribusi.
+
+```
+
+Silakan *copy-paste* blok kode di atas langsung ke dalam file `README.md` di GitHub-mu. Apakah kamu mau lanjut mengemas UI ini ke proyek Capacitor Android-mu sekarang?
+
+```
