@@ -188,7 +188,10 @@ npm start
 ```
 
 UNTUK UPDATE PROGRAM!!
-termux: ``` cd Downloader && git pull && npm install ```
+termux: 
+```
+cd Downloader && git pull && npm install 
+```
 
 
 
