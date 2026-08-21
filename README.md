@@ -178,7 +178,7 @@ Sekarang, DownloaderHub siap digunakan langsung dari HP Android kamu!
 
 ---
 ## Catatan Tambahan
----
+
 ## Android
 Untuk Android Dapatkan Aplikasi Termux Pada [F-Droid](https://f-droid.org/packages/com.termux/) atau [GitHub Resmi Termux](https://github.com/termux/termux-app)
 Untuk menjalankan program kembali ketik :
@@ -186,7 +186,7 @@ Untuk menjalankan program kembali ketik :
 cd Downloader
 npm start
 ```
-
+---
 
 ## Lisensi
 
