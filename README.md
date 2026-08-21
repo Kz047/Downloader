@@ -54,7 +54,7 @@ Jika belum ada, gunakan *package manager* sesuai OS:
 
 ---
 
-## Cara Install Pada Linux/MacOS
+## Jangn lupa install yang diperlukan) 👍
 
 Buka terminal di folder proyek ini, lalu jalankan perintah berikut:
 
