@@ -93,7 +93,7 @@ Kamu juga bisa menjalankan aplikasi ini langsung di HP Android menggunakan aplik
 
 #### 1. Persiapan Awal di Termux
 
-Buka aplikasi Termux (pastikan mengunduh dari sumber resmi seperti F-Droid, bukan Play Store yang sudah usang). Lalu jalankan perintah berikut satu per satu:
+Buka aplikasi Termux (Unduh Aplikasi Termux Pada Bagian Catatan Tambahan Di Bawah). Lalu jalankan perintah berikut satu per satu:
 
 ```bash
 # Update dan upgrade sistem Termux
@@ -178,8 +178,14 @@ Sekarang, DownloaderHub siap digunakan langsung dari HP Android kamu!
 
 ---
 ## Catatan Tambahan
+---
+## Android
 Untuk Android Dapatkan Aplikasi Termux Pada [F-Droid](https://f-droid.org/packages/com.termux/) atau [GitHub Resmi Termux](https://github.com/termux/termux-app)
-
+Untuk menjalankan program kembali ketik :
+```
+cd Downloader
+npm start
+```
 
 
 ## Lisensi
