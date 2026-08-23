@@ -1,5 +1,5 @@
 
-```markdown
+```
 # 🎬 All In One Downloader
 
 **Download anything. Play anything. All in one sleek interface.**
@@ -7,12 +7,13 @@
 A powerful, cross-platform web application to download videos and audio from **YouTube, Facebook, Instagram, TikTok, and X (Twitter)**, plus a built-in **YouTube Music scraper** for discovering and streaming music directly in the browser.
 
 With a modern, customizable dark UI, batch playlist support, automatic audio metadata (Album Art), and a smart-paste clipboard feature, this is your ultimate media toolkit.
-
+---
+```
 ![Preview](https://img.shields.io/badge/Platform-Web-teal)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-green)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-yellow)
 
----
+
 
 ## ✨ Key Features
 
