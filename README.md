@@ -1,202 +1,117 @@
+---
 
+```markdown
+# 🎬 All In One Downloader
 
+**Download anything. Play anything. All in one sleek interface.**
 
-# DownloaderHub
+A powerful, cross-platform web application to download videos and audio from **YouTube, Facebook, Instagram, TikTok, and X (Twitter)**, plus a built-in **YouTube Music scraper** for discovering and streaming music directly in the browser.
 
-Aplikasi untuk mengunduh video dan audio dari **YouTube, Facebook, Instagram, TikTok, X (Twitter), dan Threads**. 
-
-Mendukung pengunduhan *batch/playlist*, riwayat unduhan, penanaman metadata audio (Album Art), dan antarmuka *Smart Paste* langsung dari browser.
+With a modern, customizable dark UI, batch playlist support, automatic audio metadata (Album Art), and a smart-paste clipboard feature, this is your ultimate media toolkit.
 
 ![Preview](https://img.shields.io/badge/Platform-Web-teal)
 ![Node](https://img.shields.io/badge/Node.js-18%2B-green)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-yellow)
 
+---
 
-## Yang Perlu Disiapkan
+## ✨ Key Features
 
-Sebelum memulai, pastikan komputer sudah terinstal 3 hal ini:
-
-### 1. Node.js
-Cek dengan membuka terminal atau *Command Prompt*, ketik:
-```bash
-node --version
-
-```
-
-Jika muncul `node not recognized` — download dan install versi LTS dari https://nodejs.org.
-
-### 2. Python
-
-Cek dengan:
-
-```bash
-python --version
-
-```
-
-Jika belum ada, download dari https://www.python.org/downloads/. **(Wajib centang "Add Python to PATH" saat install di Windows).**
-
-### 3. FFmpeg
-
-Cek dengan:
-
-```bash
-ffmpeg -version
-
-```
-
-Jika belum ada, gunakan *package manager* sesuai OS:
-
-* **Windows:** `winget install "FFmpeg (Essentials Build)"`
-* **macOS:** `brew install ffmpeg`
-* **Linux (Debian/Ubuntu):** `sudo apt install ffmpeg`
-* **Linux (Arch/CachyOS):** `sudo pacman -S ffmpeg`
+- **🎥 Universal Media Download** – Supports 5 major platforms: YouTube, Facebook, Instagram, TikTok, and X (Twitter).
+- **🎵 YouTube Music Scraper** – Search, stream, and download music directly from YouTube Music with live previews.
+- **📦 Batch / Playlist Support** – Paste a playlist link to automatically open a "Batch Selection" interface for multiple downloads.
+- **🗂️ Download History** – A dedicated "Recent" tab keeps track of all your past downloads for quick re-downloading.
+- **🎨 Smart Paste** – Just copy a link (`Ctrl+V`) and the app automatically detects the platform, highlighting the correct button.
+- **🖼️ Automatic Metadata** – Embeds high-quality album art and correct tags into your MP3 files (powered by `mutagen`).
+- **🎨 Fully Customizable UI** – Personalize the app with 7 themes (System, Black, White, Dark, Ocean, Purple, Forest) and 4 accent colors (Teal Glow, Electric Blue, Neon Pink, Cyber Yellow).
+- **📱 Mobile-Ready (Termux)** – Run the entire server directly on your Android phone without a PC.
 
 ---
 
-## Jangan lupa install yang diperlukan 👍
+## 🛠️ Tech Stack
 
-Buka terminal di folder proyek ini, lalu jalankan perintah berikut:
+- **Frontend:** HTML, CSS, JavaScript (Modern responsive UI)
+- **Backend:** Node.js (Express)
+- **Core Engine:** `yt-dlp` (Python) for downloading
+- **Metadata Handling:** `mutagen` (Python) for audio tagging
+- **Media Processing:** FFmpeg
 
+---
+
+## 🚀 Quick Start (PC)
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) 18+
+- [Python](https://www.python.org/downloads/) 3.8+ (with "Add to PATH" checked)
+- [FFmpeg](https://ffmpeg.org/) (Install via your package manager)
+
+### Installation
 ```bash
-# 1. Install dependensi Node.js
+# 1. Install Node.js dependencies
 npm install
 
-# 2. Install yt-dlp dan mutagen (wajib untuk fitur metadata audio / cover art)
+# 2. Install Python packages (required for metadata & downloads)
 python -m pip install yt-dlp mutagen
 
-```
-
----
-
-## Cara Menjalankan
-
-### Opsi 1: Klik Dua Kali(Double Click) (Windows)
-
-Jalankan `dist/MediaDownloader.exe` atau `dist/start.bat`.
-
-### Opsi 2: Melalui Terminal
-
-```bash
+# 3. Start the server
 npm start
-
 ```
 
-Bila muncul `Server running at http://localhost:3000`, buka *browser* dan akses alamat tersebut.
+Open `http://localhost:3000` in your browser.
 
 ---
 
+## 🤖 Run on Android (Termux)
 
-### 📱 Menjalankan DownloaderHub di Android (via Termux)
-
-Kamu juga bisa menjalankan aplikasi ini langsung di HP Android menggunakan aplikasi **Termux** tanpa harus menyalakan PC/Laptop.
-
-#### 1. Persiapan Awal di Termux
-
-Buka aplikasi Termux (Unduh Aplikasi Termux Pada Bagian Catatan Tambahan Di Bawah). Lalu jalankan perintah berikut satu per satu:
+Want to download media on the go? Follow these steps inside the Termux app:
 
 ```bash
-# Update dan upgrade sistem Termux
+# Update & setup
 pkg update && pkg upgrade
-
-# Berikan izin akses penyimpanan (agar file hasil download bisa disimpan ke HP)
 termux-setup-storage
-
-# Install dependensi utama (Python, Node.js, Git, dan FFmpeg)
 pkg install python nodejs git ffmpeg
 
-```
-
-#### 2. Download (Clone) Repository dari GitHub
-
-Kloning repositori DownloaderHub yang sudah kamu buat langsung ke dalam Termux:
-
-```bash
-# Clone repo GitHub kamu (ganti URL jika diperlukan)
+# Clone & install
 git clone https://github.com/Kz047/Downloader.git
-
-# Masuk ke folder proyek
 cd Downloader
-
-```
-
-#### 3. Install Modul yang Dibutuhkan
-
-Instal pustaka Node.js dan pustaka Python (`yt-dlp` serta `mutagen`):
-
-```bash
-# Install paket Node.js
 npm install
-
-# Install yt-dlp dan mutagen untuk metadata audio
 pip install -U yt-dlp mutagen
 
-```
-
-#### 4. Menjalankan Server
-
-Nyalakan server aplikasi dengan perintah:
-
-```bash
-npm start
-
-```
-
-Jika berhasil, akan muncul tulisan:
-`Server running at http://localhost:3000`
-
-#### 5. Cara Mengakses
-
-Buka *browser* HP (seperti Chrome atau Firefox) dan ketik alamat berikut di *url bar*:
-
-```
-http://localhost:3000
-
-```
-
-Sekarang, DownloaderHub siap digunakan langsung dari HP Android kamu!
-
----
-
-* **Smart Paste:** Salin tautan video/playlist. Di halaman web, kamu bisa langsung menekan `Ctrl+V` atau klik ikon **Paste** di dalam kolom pencarian. Link otomatis dikenali dan tombol platform akan menyala dengan warna *teal* (hijau toska).
-* **Fetch:** Sistem akan memproses media secara otomatis. Jika kamu memasukkan link *playlist*, antarmuka *Batch Selection* akan terbuka.
-* **Pilih Resolusi:** Klik salah satu *chip* resolusi (misal 1080p). *Chip* terpilih akan menjadi hitam/teal. Jika tidak memilih, sistem akan mengunduh resolusi terbaik secara otomatis.
-* **Download:** Klik **Save Video** (.mp4) atau **Save Audio** (.mp3). File akan terunduh dengan metadata yang rapi.
-* **History:** Klik ikon jam di sudut kanan atas untuk melihat dan mengunduh ulang riwayat media sebelumnya.
-
----
-
-## Troubleshooting
-
-| Masalah | Penyebab | Solusi |
-| --- | --- | --- |
-| **Error "Unexpected response" di TikTok** | Pembaruan anti-bot dari TikTok | Kode sudah diperbarui untuk menggunakan *User-Agent* Chrome. Pastikan menggunakan kode `server.js` versi terbaru. |
-| **Server Crash saat nama file unik/emoji** | *Header HTTP* tidak valid | Kode telah menggunakan RFC 5987 (`UTF-8`) untuk penamaan file. Pastikan menggunakan `server.js` terbaru. |
-| **Video tidak bisa diputar** | Proses *merge* gagal | Coba pilih resolusi lebih rendah, atau biarkan kosong (auto). |
-| **Audio tidak memiliki Cover Art** | Modul `mutagen` belum terinstal | Jalankan `pip install mutagen` di terminal. |
-| **Download lambat** | Limitasi server sumber | Tunggu prosesnya, gunakan jaringan yang stabil. |
-
----
-## Catatan Tambahan
-
-## Android
-Untuk Android Dapatkan Aplikasi Termux Pada [F-Droid](https://f-droid.org/packages/com.termux/) atau [GitHub Resmi Termux](https://github.com/termux/termux-app)
-Untuk menjalankan program kembali ketik : 
-```
-cd Downloader
+# Launch
 npm start
 ```
 
-UNTUK UPDATE PROGRAM!!
-termux: 
-```
-cd Downloader && git pull && npm install 
-```
-
-
+Then open `http://localhost:3000` in your Android browser.
 
 ---
 
-## Lisensi
+## 🖱️ Usage Guide
 
-MIT — bebas pakai, modifikasi, dan distribusi.
+1. **Smart Paste:** Copy a link anywhere, go to the app, press `Ctrl+V` (or click the Paste icon). The platform button lights up teal.
+2. **Fetch:** The system processes the link automatically. For playlists, the batch selection window opens.
+3. **Select Quality:** Click a resolution chip (e.g., 1080p, 4K, MP3). Leave empty for auto-best quality.
+4. **Download:** Click **Save Video** (.mp4) or **Save Audio** (.mp3). Files are saved with metadata embedded.
+5. **History:** Click the clock icon (top-right) to view past downloads and re-download them anytime.
+
+---
+
+## 🛡️ Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| **TikTok "Unexpected response"** | TikTok anti-bot updates | Ensure you are on the latest `server.js` (uses Chrome User-Agent). |
+| **Server crash on emoji filenames** | Invalid HTTP headers | Updated to RFC 5987 (UTF-8); use latest `server.js`. |
+| **Video won't play** | Merge failure | Select a lower resolution or leave it on auto. |
+| **No cover art on MP3** | `mutagen` missing | Run `pip install mutagen`. |
+
+---
+
+## 📄 License
+
+MIT — Free to use, modify, and distribute.
+
+---
+
+**Made with ❤️ for creators and media lovers.**
+```
+---
