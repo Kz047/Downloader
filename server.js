@@ -11,12 +11,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 const YT_DLP = [
-  'python', 
-  '-m', 
+  'python',
+  '-m',
   'yt_dlp',
   '--user-agent',
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
@@ -70,6 +70,58 @@ function parseThreadsHtml(html) {
   return videos;
 }
 
+// Searches YouTube Music (not general YouTube) so results are official tracks/albums
+// rather than random covers, reaction videos, or 10-hour loop uploads.
+// Returns metadata only — actual downloads reuse the existing /api/download route below,
+// by constructing a normal youtube.com/watch?v=<id> URL from the chosen result's id.
+app.post('/api/music/search', async (req, res) => {
+  const { query } = req.body;
+  if (!query || !query.trim()) return res.status(400).json({ error: 'Search query is required' });
+
+  // yt-dlp's "ytmsearchN:" shorthand was dropped on this version — it now only
+  // recognizes an actual music.youtube.com search URL.
+  const searchUrl = `https://music.youtube.com/search?q=${encodeURIComponent(query.trim())}`;
+  const args = [...YT_DLP, searchUrl, '--dump-single-json', '--flat-playlist', '--no-warnings'];
+
+  execFile(args[0], args.slice(1), {
+    timeout: 30000,
+    maxBuffer: 20 * 1024 * 1024
+  }, (err, stdout, stderr) => {
+    if (err) {
+      const msg = stderr.split('\n').filter(l => l.trim()).pop() || err.message;
+      console.error('[music search failed]', msg);
+      return res.status(400).json({ error: msg });
+    }
+    try {
+      const d = JSON.parse(stdout);
+      const results = (d.entries || [])
+        // YouTube Music search mixes in albums, artist channels, and playlists
+        // (ie_key: "YoutubeTab") alongside actual playable tracks (ie_key: "Youtube").
+        // We only want the latter.
+        .filter(e => e.ie_key === 'Youtube' && e.id)
+        .slice(0, 12)
+        .map(e => ({
+          id: e.id,
+          title: e.title || 'Untitled',
+          // Flat-playlist mode doesn't return uploader/artist for these entries —
+          // there's no reliable per-result artist name available without a much
+          // slower per-track lookup, so this falls back to a generic label.
+          artist: e.artist || e.uploader || e.channel || 'YouTube Music',
+          // Same limitation applies to duration — not present in flat mode.
+          duration: e.duration || null,
+          // Not returned in flat mode either, but YouTube's thumbnail URLs are
+          // predictable from the video id, so we can build one for free.
+          thumbnail: `https://i.ytimg.com/vi/${e.id}/hqdefault.jpg`
+        }));
+
+      res.json({ results });
+    } catch (e) {
+      console.error('[music search parse error]', e.message, '\nRaw stdout was:', stdout.slice(0, 500));
+      res.status(500).json({ error: 'Failed to parse search results.' });
+    }
+  });
+});
+
 app.post('/api/info', async (req, res) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });
@@ -113,7 +165,7 @@ app.post('/api/info', async (req, res) => {
     }
     try {
       const d = JSON.parse(stdout);
-      
+
       if (d._type === 'playlist' || d.entries) {
         const entries = (d.entries || [])
           .filter(e => e.url || e.original_url || e.webpage_url || e.id)
@@ -135,6 +187,7 @@ app.post('/api/info', async (req, res) => {
       res.json({
         isPlaylist: false,
         title: d.title || 'Untitled',
+        artist: d.channel || d.uploader || null,
         thumbnail: d.thumbnail || '',
         duration: d.duration || null,
         resolution: d.resolution || d.height ? `${d.height}p` : null,
@@ -192,10 +245,10 @@ app.post('/api/download', async (req, res) => {
   let args;
   if (type === 'audio') {
     args = [...YT_DLP, '-x', '--audio-format', 'mp3', '--audio-quality', '0', '--embed-metadata', '--embed-thumbnail', '-o', tmpFile, url];
-  } else if (format_id && format_id.endsWith('p')) {
-    const height = format_id.replace('p', '');
-    args = [...YT_DLP, '-f', `bestvideo[height<=${height}]+bestaudio/best`, '--remux-video', 'mp4', '-o', tmpFile, url];
-  } else if (format_id) {
+  } else if (format_id && (format_id.endsWith('p') || format_id === '2160p')) {
+      const height = format_id === '2160p' ? '2160' : format_id.replace('p', '');
+      args = [...YT_DLP, '-f', `bestvideo[height<=${height}]+bestaudio/best`, '--remux-video', 'mp4', '-o', tmpFile, url];
+    } else if (format_id) {
     args = [...YT_DLP, '-f', `${format_id}+bestaudio[ext=m4a]/best[ext=mp4]`, '--remux-video', 'mp4', '-o', tmpFile, url];
   } else {
     args = [...YT_DLP, '-f', 'best[ext=mp4]/best', '-o', tmpFile, url];
@@ -203,7 +256,7 @@ app.post('/api/download', async (req, res) => {
 
   const proc = spawn(args[0], args.slice(1), {
     stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 900000 
+    timeout: 900000
   });
 
   let stderrBuf = '';
@@ -221,15 +274,15 @@ app.post('/api/download', async (req, res) => {
       try { fs.unlinkSync(tmpFile); } catch (_) {}
       return;
     }
-    
+
     // FIXED: Properly encode the filename for HTTP headers
     const encodedFilename = encodeURIComponent(`${baseName}.${ext}`);
     res.setHeader('Content-Disposition', `attachment; filename="media.${ext}"; filename*=UTF-8''${encodedFilename}`);
     res.setHeader('Content-Type', type === 'audio' ? 'audio/mpeg' : 'video/mp4');
-    
+
     const stream = fs.createReadStream(tmpFile);
     stream.pipe(res);
-    
+
     stream.on('end', () => {
       try { fs.unlinkSync(tmpFile); } catch (_) {}
     });
