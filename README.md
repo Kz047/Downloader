@@ -1,4 +1,3 @@
----
 
 ```markdown
 # 🎬 All In One Downloader
@@ -19,11 +18,14 @@ With a modern, customizable dark UI, batch playlist support, automatic audio met
 
 - **🎥 Universal Media Download** – Supports 5 major platforms: YouTube, Facebook, Instagram, TikTok, and X (Twitter).
 - **🎵 YouTube Music Scraper** – Search, stream, and download music directly from YouTube Music with live previews.
+- **🎧 Built-in Music Player** – Stream songs with a spinning vinyl animation, seek bar, volume control, and a minimized floating player.
 - **📦 Batch / Playlist Support** – Paste a playlist link to automatically open a "Batch Selection" interface for multiple downloads.
-- **🗂️ Download History** – A dedicated "Recent" tab keeps track of all your past downloads for quick re-downloading.
+- **🗂️ Download History** – A dedicated "Recent" tab keeps track of all your past downloads for quick re-downloading (saved locally, up to 50 items).
 - **🎨 Smart Paste** – Just copy a link (`Ctrl+V`) and the app automatically detects the platform, highlighting the correct button.
 - **🖼️ Automatic Metadata** – Embeds high-quality album art and correct tags into your MP3 files (powered by `mutagen`).
 - **🎨 Fully Customizable UI** – Personalize the app with 7 themes (System, Black, White, Dark, Ocean, Purple, Forest) and 4 accent colors (Teal Glow, Electric Blue, Neon Pink, Cyber Yellow).
+- **🔍 Smart URL Detection** – Automatically recognizes the platform from the pasted link and highlights the correct filter chip.
+- **💾 Skeleton Loading States** – Beautiful shimmering skeletons while fetching media info for a polished experience.
 - **📱 Mobile-Ready (Termux)** – Run the entire server directly on your Android phone without a PC.
 
 ---
@@ -31,9 +33,9 @@ With a modern, customizable dark UI, batch playlist support, automatic audio met
 ## 🛠️ Tech Stack
 
 - **Frontend:** HTML, CSS, JavaScript (Modern responsive UI)
-- **Backend:** Node.js (Express)
-- **Core Engine:** `yt-dlp` (Python) for downloading
-- **Metadata Handling:** `mutagen` (Python) for audio tagging
+- **Backend:** Node.js (Express) — `server.js`
+- **Downloading Engine:** `yt-dlp` (via Python)
+- **Metadata Handling:** `mutagen` (via Python)
 - **Media Processing:** FFmpeg
 
 ---
@@ -110,8 +112,4 @@ Then open `http://localhost:3000` in your Android browser.
 
 MIT — Free to use, modify, and distribute.
 
----
-
-**Made with ❤️ for creators and media lovers.**
-```
 ---
