@@ -80,11 +80,11 @@ Then open `http://localhost:3000` in your Android browser.
 
 ## 🖱️ Usage Guide
 
-1. **Smart Paste:** Copy a link anywhere, go to the app, press `Ctrl+V` (or click the Paste icon). The platform button lights up teal.
-2. **Fetch:** The system processes the link automatically. For playlists, the batch selection window opens.
-3. **Select Quality:** Click a resolution chip (e.g., 1080p, 4K, MP3). Leave empty for auto-best quality.
-4. **Download:** Click **Save Video** (.mp4) or **Save Audio** (.mp3). Files are saved with metadata embedded.
-5. **History:** Click the clock icon (top-right) to view past downloads and re-download them anytime.
+1. **Smart Paste:** The icon that you can click to paste :D .
+2. **Fetch:** The system processes the link automatically, or just press enter if it doesn't. For playlists, the batch selection window opens.
+3. **Select Quality:** Click a resolution chip (e.g., 1080p, 4K, 720p).
+4. **Download:** Click **Save Video** (.mp4) or **Save Audio** (.mp3). Files are saved with metadata embedded(yay).
+5. **History:** Click the clock icon (top-right) to view past downloads and re-download them anytime(wowie zowie).
 
 ---
 
@@ -94,9 +94,9 @@ Then open `http://localhost:3000` in your Android browser.
 |-------|-------|----------|
 | **TikTok "Unexpected response"** | TikTok anti-bot updates | Ensure you are on the latest `server.js` (uses Chrome User-Agent). |
 | **Server crash on emoji filenames** | Invalid HTTP headers | Updated to RFC 5987 (UTF-8); use latest `server.js`. |
-| **Video won't play** | Merge failure | Select a lower resolution or leave it on auto. |
+| **Video won't play** | Merge failure | uhh try selecting lower resolution HOPE IT WORKS !! or just try updating yt-dlp |
 | **No cover art on MP3** | `mutagen` missing | Run `pip install mutagen`. |
-
+any other issues could easily be fixed by updating yt-dlp, if it does not work however sent a issue! :D
 ---
 
 ## 📄 License
