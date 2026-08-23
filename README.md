@@ -31,16 +31,6 @@ With a modern, customizable dark UI, batch playlist support, automatic audio met
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Frontend:** HTML, CSS, JavaScript (Modern responsive UI)
-- **Backend:** Node.js (Express) — `server.js`
-- **Downloading Engine:** `yt-dlp` (via Python)
-- **Metadata Handling:** `mutagen` (via Python)
-- **Media Processing:** FFmpeg
-
----
-
 ## 🚀 Quick Start (PC)
 
 ### Prerequisites
