@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Media Downloader
+# Server: http://localhost:3000
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "============================================"
+echo "  Media Downloader"
+echo "  Server: http://localhost:3000"
+echo "============================================"
+echo ""
+
+if ! command -v node &> /dev/null; then
+    echo "[ERROR] Node.js tidak ditemukan!"
+    echo "Install via package manager atau dari https://nodejs.org"
+    read -p "Press enter to exit..."
+    exit 1
+fi
+
+if [ ! -d "node_modules" ]; then
+    echo "[INFO] Menginstall dependencies..."
+    npm install
+    if [ $? -ne 0 ]; then
+        read -p "Press enter to exit..."
+        exit 1
+    fi
+fi
+
+if ! python3 -c "import yt_dlp" &> /dev/null; then
+    echo "[INFO] Menginstall yt-dlp..."
+    python3 -m pipx install yt-dlp
+fi
+
+if ! command -v ffmpeg &> /dev/null; then
+    echo "[WARNING] ffmpeg tidak ditemukan."
+    echo "Audio download dan merge video mungkin gagal."
+    echo "Install via package manager (contoh: sudo apt install ffmpeg)"
+    echo ""
+fi
+
+echo ""
+echo "Server starting... Buka http://localhost:3000"
+echo ""
+
+xdg-open "http://localhost:3000" &> /dev/null &
+
+npm start
+
+read -p "Press enter to continue..."
+
