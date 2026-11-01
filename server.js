@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { Readable } = require('stream');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -330,43 +331,159 @@ app.post('/api/download', async (req, res) => {
   });
 });
 
-// Streams a <=480p preview: yt-dlp resolves the stream URLs, ffmpeg remuxes
-// them to fragmented mp4 so a <video> tag can play it as it arrives.
-app.get('/api/preview', (req, res) => {
-  const { url } = req.query;
-  if (!url) return res.status(400).end();
 
-  const args = [
-    ...YT_DLP.slice(1),
-    '-g', '--no-playlist',
-    '-f', 'bv*[height<=480][ext=mp4]+ba[ext=m4a]/b[height<=480][ext=mp4]/b[height<=480]/b',
-    url
-  ];
+const PREVIEW_CACHE = path.join(os.tmpdir(), 'downloaderhub-preview');
+const PREVIEW_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
+const previewJobs = new Map();
+fs.mkdirSync(PREVIEW_CACHE, { recursive: true });
 
-  execFile(YT_DLP[0], args, { timeout: 45000 }, (err, stdout, stderr) => {
-    if (err) {
-      console.error('[preview] yt-dlp failed:', stderr.split('\n').filter(l => l.trim()).pop() || err.message);
-      return res.status(400).end();
+async function getPreviewFile(url) {
+  const key = crypto.createHash('sha256').update(url).digest('hex');
+  const outputPath = path.join(PREVIEW_CACHE, `${key}.mp4`);
+
+  const existing = await fs.promises.stat(outputPath).catch(() => null);
+  if (existing && existing.isFile() && existing.size > 0 &&
+      Date.now() - existing.mtimeMs < PREVIEW_CACHE_TTL_MS) {
+    return outputPath;
+  }
+  if (existing) await fs.promises.unlink(outputPath).catch(() => {});
+
+  if (previewJobs.has(key)) return previewJobs.get(key);
+
+  const job = (async () => {
+    const args = [
+      ...YT_DLP.slice(1),
+      '-g', '--no-playlist',
+      '-f', 'bv*[height<=480][ext=mp4]+ba[ext=m4a]/b[height<=480][ext=mp4]/b[height<=480]/b',
+      url
+    ];
+
+    const stdout = await new Promise((resolve, reject) => {
+      execFile(YT_DLP[0], args, { timeout: 45000 }, (err, out, stderr) => {
+        if (err) {
+          const message = stderr.split('\n').filter(line => line.trim()).pop() || err.message;
+          reject(new Error(message));
+        } else {
+          resolve(out);
+        }
+      });
+    });
+
+    const urls = stdout.split('\n').map(value => value.trim()).filter(Boolean);
+    if (!urls.length) throw new Error('yt-dlp did not return a preview stream URL.');
+
+    const inputs = urls.flatMap(value => ['-i', value]);
+    const tempPath = path.join(PREVIEW_CACHE, `${key}.${process.pid}.${Date.now()}.tmp.mp4`);
+
+    try {
+      await new Promise((resolve, reject) => {
+        const ff = spawn('ffmpeg', [
+          '-y', '-v', 'error',
+          ...inputs,
+          '-c', 'copy',
+          '-movflags', '+faststart',
+          '-f', 'mp4',
+          tempPath
+        ], { stdio: ['ignore', 'ignore', 'pipe'] });
+
+        let ffError = '';
+        ff.stderr.on('data', data => { ffError += data.toString(); });
+        ff.on('error', reject);
+        ff.on('close', code => {
+          if (code === 0) resolve();
+          else reject(new Error(ffError.trim() || `ffmpeg exited with code ${code}`));
+        });
+      });
+
+      const generated = await fs.promises.stat(tempPath);
+      if (!generated.isFile() || generated.size === 0) {
+        throw new Error('The generated preview file is empty.');
+      }
+      await fs.promises.rename(tempPath, outputPath);
+      return outputPath;
+    } catch (error) {
+      await fs.promises.unlink(tempPath).catch(() => {});
+      throw error;
     }
+  })();
 
-    const urls = stdout.split('\n').map(s => s.trim()).filter(Boolean);
-    const inputs = urls.flatMap(u => ['-i', u]);
+  previewJobs.set(key, job);
+  try {
+    return await job;
+  } finally {
+    previewJobs.delete(key);
+  }
+}
 
-    const ff = spawn('ffmpeg', [
-      '-v', 'error',
-      ...inputs,
-      '-c', 'copy',
-      '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
-      '-f', 'mp4',
-      'pipe:1'
-    ], { stdio: ['ignore', 'pipe', 'pipe'] });
+app.get('/api/preview', async (req, res) => {
+  const { url } = req.query;
+  if (!url || typeof url !== 'string') return res.status(400).end();
 
-    res.setHeader('Content-Type', 'video/mp4');
-    ff.stdout.pipe(res);
-    ff.stderr.on('data', d => console.error('[preview ffmpeg]', d.toString().trim()));
-    ff.on('error', () => res.end());
-    res.on('close', () => ff.kill('SIGKILL')); // stop when the viewer leaves
-  });
+  try {
+    const previewFile = await getPreviewFile(url);
+    if (res.destroyed) return;
+
+    res.sendFile(previewFile, {
+      acceptRanges: true,
+      maxAge: '5m'
+    }, err => {
+      if (!err) return;
+      if (res.headersSent) res.destroy(err);
+      else res.status(err.statusCode || 500).end();
+    });
+  } catch (err) {
+    console.error('[preview] failed:', err.message);
+    if (!res.headersSent) res.status(400).end();
+  }
+});
+
+const MUSIC_CACHE = path.join(os.tmpdir(), 'downloaderhub-music');
+fs.mkdirSync(MUSIC_CACHE, { recursive: true });
+const musicJobs = new Map();
+
+function prepareMusic(id) {
+  const finalFile = path.join(MUSIC_CACHE, `${id}.mp3`);
+  if (fs.existsSync(finalFile)) return Promise.resolve(finalFile);
+  if (musicJobs.has(id)) return musicJobs.get(id);
+
+  const job = new Promise((resolve, reject) => {
+    const partBase = path.join(MUSIC_CACHE, `${id}.part`);
+    const args = [
+      ...YT_DLP,
+      '--no-playlist',
+      '-f', 'ba/b',
+      '-x', '--audio-format', 'mp3', '--audio-quality', '5',
+      '-o', `${partBase}.%(ext)s`,
+      `https://music.youtube.com/watch?v=${id}`
+    ];
+    console.log('[music] preparing', id);
+    const proc = spawn(args[0], args.slice(1), { stdio: ['ignore', 'pipe', 'pipe'] });
+    let err = '';
+    proc.stderr.on('data', (c) => { err += c.toString(); });
+    proc.on('error', () => reject(new Error('Failed to start yt-dlp.')));
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        console.error('[music] failed:', err.split('\n').filter(l => l.trim()).pop());
+        return reject(new Error(err.split('\n').filter(l => l.trim()).pop() || 'Audio download failed'));
+      }
+      try { fs.renameSync(`${partBase}.mp3`, finalFile); resolve(finalFile); }
+      catch (e) { reject(e); }
+    });
+  }).finally(() => musicJobs.delete(id));
+
+  musicJobs.set(id, job);
+  return job;
+}
+
+app.get('/api/stream', async (req, res) => {
+  const id = String(req.query.id || '');
+  if (!/^[\w-]{6,20}$/.test(id)) return res.status(400).json({ error: 'Invalid track id' });
+  try {
+    const file = await prepareMusic(id);
+    res.sendFile(file); // handles Range requests automatically
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.listen(PORT, () => {

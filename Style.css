@@ -1,0 +1,566 @@
+/* =========================================================
+ Welcome for style downloaderhub
+   Loaded AFTER the inline <style> in index.html, so it overrides it.
+   Part 1: Music tab + player.  Part 2 (bottom): sidebar, top bar, tabs, settings.
+
+   - Layout / motion patterns follow(card grid, hover lift,
+     floating blurred player bar, 6px seek bar).
+   - ALL colors come from the Settings theme + accent
+     (--bg-base, --bg-surface, --bg-elevated, --text-main, --text-muted,
+      --border, --accent), so it follows whatever theme/accent is picked.
+   - No font rules on purpose, so the app font stays consistent.
+   ========================================================= */
+
+:root {
+  --mc-radius: 8px;
+  --mc-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.15), 0 2px 4px -2px rgb(0 0 0 / 0.15);
+  --mc-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  --mc-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.25), 0 8px 10px -6px rgb(0 0 0 / 0.25);
+  --mc-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+  --mc-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---------------------------------------------------------
+   Music page
+   --------------------------------------------------------- */
+.music-view {
+  /* soft accent glow at the top of the page */
+  background:
+    radial-gradient(ellipse 70% 320px at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    var(--bg-base);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-main) 25%, transparent) transparent;
+}
+.music-view::-webkit-scrollbar { width: 8px; }
+.music-view::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-main) 22%, transparent);
+  border-radius: 8px;
+}
+.music-view::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--text-main) 38%, transparent); }
+
+/* small accent bar under the page title (no font changes) */
+.music-header h1::after {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+/* ---------------------------------------------------------
+   Search
+   --------------------------------------------------------- */
+.music-view .search-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--mc-radius);
+  box-shadow: none;
+  padding-left: 14px;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.music-view .search-box:focus-within {
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* ---------------------------------------------------------
+   Card grid
+   --------------------------------------------------------- */
+@media (min-width: 769px) {
+  .music-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+}
+
+@keyframes mcCardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.track-card {
+  background: var(--bg-surface);
+  border: 1px solid transparent;
+  border-radius: var(--mc-radius);
+  padding: 16px;
+  gap: 14px;
+  box-shadow: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+  animation: mcCardIn 0.45s ease backwards;
+}
+/* staggered entrance */
+.track-card:nth-child(1)  { animation-delay: 0.00s; }
+.track-card:nth-child(2)  { animation-delay: 0.04s; }
+.track-card:nth-child(3)  { animation-delay: 0.08s; }
+.track-card:nth-child(4)  { animation-delay: 0.12s; }
+.track-card:nth-child(5)  { animation-delay: 0.16s; }
+.track-card:nth-child(6)  { animation-delay: 0.20s; }
+.track-card:nth-child(7)  { animation-delay: 0.24s; }
+.track-card:nth-child(8)  { animation-delay: 0.28s; }
+.track-card:nth-child(9)  { animation-delay: 0.32s; }
+.track-card:nth-child(10) { animation-delay: 0.36s; }
+.track-card:nth-child(n+11) { animation-delay: 0.40s; }
+
+@media (hover: hover) and (pointer: fine) {
+  .track-card:hover {
+    background: var(--bg-elevated);
+    border-color: var(--border);
+    transform: translateY(-6px);
+    box-shadow: var(--mc-shadow-lg);
+  }
+  .track-card:hover .track-art-wrapper { box-shadow: var(--mc-shadow-xl); }
+  .track-card:hover .track-art { transform: scale(1.05); }
+  .track-card:hover .track-play-btn { transform: scale(1); }
+}
+
+.track-art-wrapper {
+  border-radius: var(--mc-radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--mc-shadow-md);
+  transition: box-shadow 0.25s ease;
+}
+.track-art { transition: transform 0.4s ease; }
+/* Optional: uncomment for fully grayscale artwork */
+/* .track-art { filter: grayscale(1) contrast(1.05); } */
+
+.track-overlay {
+  border-radius: var(--mc-radius);
+  background: linear-gradient(to top, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.1));
+}
+.track-play-btn {
+  box-shadow: var(--mc-shadow-lg);
+  transform: scale(0.8);
+  transition: transform 0.3s var(--mc-ease-back);
+}
+.track-info { gap: 2px; }
+
+/* ---------------------------------------------------------
+   Now playing: spinning CD (kept!) with accent glow + vinyl grooves
+   --------------------------------------------------------- */
+.track-card.playing {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+}
+.track-card.playing .track-art-wrapper {
+  border-radius: 50% !important;
+  animation: spinCd 4s linear infinite;
+  border: 4px solid #141414;
+  background: radial-gradient(circle, #222 30%, #000 70%);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 0 28px color-mix(in srgb, var(--accent) 45%, transparent),
+    var(--mc-shadow-lg);
+}
+/* fine vinyl grooves over the cover */
+.track-card.playing .track-art-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at center, transparent 0 3px, rgb(0 0 0 / 0.13) 3px 4px);
+  z-index: 2;
+  pointer-events: none;
+}
+/* center hub keeps the accent ring from the base styles */
+.track-card.playing .track-art-wrapper::after {
+  box-shadow: inset 0 0 4px rgb(0 0 0 / 0.9), 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.track-card.playing .track-overlay { border-radius: 50%; }
+.track-card.playing .track-title { color: var(--accent); }
+@media (hover: hover) and (pointer: fine) {
+  .track-card.playing:hover .track-art { transform: none; }
+}
+
+/* ---------------------------------------------------------
+   Player bar
+   --------------------------------------------------------- */
+.audio-player-bar {
+  background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--mc-shadow-2xl);
+}
+.player-art { border-radius: var(--mc-radius); box-shadow: var(--mc-shadow-md); }
+
+/* Floating, rounded bar on desktop (mobile keeps its stacked bottom sheet) */
+@media (min-width: 769px) {
+  .audio-player-bar {
+    left: calc(250px + 16px);
+    right: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    border-radius: 12px;
+    padding: 0 24px;
+    transform: translateY(calc(100% + 48px));
+    transition:
+      transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 0.3s;
+  }
+  body.sidebar-collapsed .audio-player-bar { left: 16px; }
+  .audio-player-bar.active { transform: translateY(0); }
+  .audio-player-bar.minimized { transform: translateY(calc(100% + 48px)); }
+}
+
+/* Seek + volume bars: 6px, small radius, muted fill -> accent on hover */
+.progress-container {
+  height: 6px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text-main) 12%, transparent);
+}
+.progress-container:hover,
+.progress-container.dragging { height: 8px; border-radius: 2px; }
+.progress-bar { background: var(--text-muted); border-radius: 2px; }
+.progress-container:hover .progress-bar,
+.progress-container.dragging .progress-bar { background: var(--accent); }
+.progress-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.3);
+}
+.vol-slider { border-radius: 2px; background: color-mix(in srgb, var(--text-main) 12%, transparent); }
+
+.dl-music-btn { border-radius: var(--mc-radius); border: 1px solid var(--border); background: transparent; }
+.dl-music-btn:hover { background: var(--bg-surface); border-color: var(--accent); color: var(--accent); }
+
+/* ---------------------------------------------------------
+   Minimized dock
+   --------------------------------------------------------- */
+.minimized-vinyl-dock {
+  background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: var(--mc-shadow-xl);
+}
+.min-cd-wrapper { border-color: var(--bg-elevated); }
+
+/* ---------------------------------------------------------
+   Accessibility: respect reduced-motion settings
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .track-card { animation: none; }
+  .track-card.playing .track-art-wrapper { animation: none; }
+  .track-card, .track-art, .track-play-btn { transition: none; }
+}
+
+
+/* =========================================================
+   PART 2 — App shell (sidebar, top bar, tabs, settings, dock)
+   ========================================================= */
+
+:root {
+  /* Active sidebar pill. For the white pill from Monochrome's screenshot use:
+     --mc-pill-bg: var(--text-main);  --mc-pill-fg: var(--bg-base);          */
+  --mc-pill-bg: var(--accent);
+  --mc-pill-fg: #000;
+}
+
+/* ---------- Sidebar ---------- */
+.brand-logo-box { width: 32px; height: 32px; border-radius: var(--mc-radius); }
+.nav-group { gap: 4px; }
+.nav-item { border-radius: var(--mc-radius); padding: 10px 14px; gap: 14px; }
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover:not(.active) {
+    color: var(--text-main);
+    background: color-mix(in srgb, var(--text-main) 7%, transparent);
+  }
+  .collapse-btn:hover,
+  .show-sidebar-btn:hover {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+}
+/* active item = solid pill, like Monochrome */
+.nav-item.active { background: var(--mc-pill-bg); color: var(--mc-pill-fg); }
+.nav-item.active::before { display: none; }
+.nav-item.active svg { color: inherit; }
+
+/* ---------- Top bar + search ---------- */
+.top-header { padding-bottom: 0; background: var(--bg-base); }
+.search-box {
+  border-radius: var(--mc-radius);
+  padding: 10px 16px;
+}
+.search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* ---------- Platform filters -> underline tabs ---------- */
+.platform-filters { gap: 4px; padding-bottom: 0; margin-bottom: -1px; }
+.filter-chip {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 10px 12px 12px;
+  color: var(--text-muted);
+}
+@media (hover: hover) and (pointer: fine) {
+  .filter-chip:hover { color: var(--text-main); border-bottom-color: color-mix(in srgb, var(--text-main) 25%, transparent); }
+}
+.filter-chip.active {
+  background: transparent;
+  color: var(--text-main);
+  border-color: transparent;
+  border-bottom-color: var(--accent);
+}
+
+/* ---------- Home empty state: plain, no heavy card ---------- */
+.empty-hero-card { background: transparent; border: none; box-shadow: none; }
+
+/* ---------- Download dock: same floating glass as the player ---------- */
+.download-dock {
+  background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  box-shadow: var(--mc-shadow-2xl);
+}
+
+/* ---------- Settings: underline tabs + accent-aware pills ---------- */
+.settings-tabs { gap: 4px; padding-bottom: 0; }
+.settings-tab {
+  border-radius: 0;
+  padding: 10px 14px 12px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.settings-tab.active {
+  background: transparent;
+  color: var(--text-main);
+  border-bottom-color: var(--accent);
+}
+.theme-pill { border-radius: var(--mc-radius); }
+.theme-pill.active {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip { border-radius: var(--mc-radius); }
+.chip.selected {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-video:hover { box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 40%, transparent); }
+}
+
+/* ---------- Player bar layout: timeline on top, controls below ---------- */
+.player-center { gap: 6px; }
+.player-timeline { order: -1; }
+.player-art { width: 56px; height: 56px; border-radius: 6px; }
+.ctrl-btn { border-radius: 50%; }
+@media (hover: hover) and (pointer: fine) {
+  .ctrl-btn:hover:not(.ctrl-play) {
+    background: color-mix(in srgb, var(--text-main) 8%, transparent);
+  }
+}
+.ctrl-play { width: 40px; height: 40px; }
+.ctrl-play svg { width: 20px; height: 20px; }
+
+/* Download button -> ghost icon button (text hidden) */
+.dl-music-btn {
+  font-size: 0;
+  gap: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+}
+.dl-music-btn:hover {
+  background: color-mix(in srgb, var(--text-main) 8%, transparent);
+  color: var(--text-main);
+  border: none;
+}
+.dl-music-btn svg { width: 18px; height: 18px; }
+
+
+/* =========================================================
+   PART 3 — Music sub-menu, card actions, playlists
+   ========================================================= */
+
+/* ---------- Sub-menu under "Music" in the sidebar ---------- */
+.nav-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: -4px;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
+}
+.nav-sub.open { grid-template-rows: 1fr; opacity: 1; margin-top: 0; }
+.nav-sub-inner {
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 22px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+.nav-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.nav-sub-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+@media (hover: hover) and (pointer: fine) {
+  .nav-sub-item:hover:not(.active) {
+    color: var(--text-main);
+    background: color-mix(in srgb, var(--text-main) 7%, transparent);
+  }
+}
+.nav-sub-item.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* ---------- Like / add buttons on cards ---------- */
+.track-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+  z-index: 20;
+}
+.track-action {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  background: rgb(0 0 0 / 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.2s ease, transform 0.2s var(--mc-ease-back), background-color 0.2s ease, color 0.2s ease;
+}
+.track-action:hover { background: rgb(0 0 0 / 0.8); transform: scale(1.08); }
+@media (hover: hover) and (pointer: fine) {
+  .track-card:hover .track-action { opacity: 1; transform: scale(1); }
+  .track-card:hover .track-action:hover { transform: scale(1.08); }
+}
+@media (hover: none) {
+  .track-action { opacity: 1; transform: scale(1); }
+}
+.track-action.liked { opacity: 1; transform: scale(1); color: #ef4444; }
+.track-action.liked svg { fill: currentColor; }
+
+/* ---------- "Add to playlist" popover ---------- */
+.mc-popover {
+  position: fixed;
+  z-index: 3000;
+  min-width: 210px;
+  max-width: 260px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--mc-radius);
+  box-shadow: var(--mc-shadow-2xl);
+  animation: mcCardIn 0.18s ease;
+}
+.mc-pop-title {
+  padding: 8px 10px 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.mc-pop-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.mc-pop-item:hover { background: color-mix(in srgb, var(--text-main) 8%, transparent); }
+.mc-pop-item.on .mc-pop-check { color: var(--accent); }
+.mc-pop-new { color: var(--accent); border-top: 1px solid var(--border); border-radius: 0 0 6px 6px; margin-top: 4px; }
+
+/* ---------- Playlists screens ---------- */
+.mc-toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.mc-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--mc-radius);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.mc-btn:hover { background: var(--bg-surface); border-color: var(--accent); }
+.mc-btn-danger { margin-left: auto; }
+.mc-btn-danger:hover { border-color: #ef4444; color: #ef4444; }
+
+.pl-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+}
+.pl-create .pl-art { border: 1px dashed color-mix(in srgb, var(--text-main) 30%, transparent); box-shadow: none; }
+@media (hover: hover) and (pointer: fine) {
+  .pl-create:hover .pl-art { color: var(--accent); border-color: var(--accent); }
+}
+
+
+/* Mobile: reserve a clear top-left lane for the floating sidebar toggle
+   on every view, including Music and Settings. */
+@media (max-width: 768px) {
+  .content-area,
+  .settings-view,
+  .history-view,
+  .music-view {
+    padding-top: 72px !important;
+  }
+
+  .minimized-vinyl-dock {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+  }
+  .minimized-vinyl-dock:active { cursor: grabbing; }
+}
