@@ -330,6 +330,45 @@ app.post('/api/download', async (req, res) => {
   });
 });
 
+// Streams a <=480p preview: yt-dlp resolves the stream URLs, ffmpeg remuxes
+// them to fragmented mp4 so a <video> tag can play it as it arrives.
+app.get('/api/preview', (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).end();
+
+  const args = [
+    ...YT_DLP.slice(1),
+    '-g', '--no-playlist',
+    '-f', 'bv*[height<=480][ext=mp4]+ba[ext=m4a]/b[height<=480][ext=mp4]/b[height<=480]/b',
+    url
+  ];
+
+  execFile(YT_DLP[0], args, { timeout: 45000 }, (err, stdout, stderr) => {
+    if (err) {
+      console.error('[preview] yt-dlp failed:', stderr.split('\n').filter(l => l.trim()).pop() || err.message);
+      return res.status(400).end();
+    }
+
+    const urls = stdout.split('\n').map(s => s.trim()).filter(Boolean);
+    const inputs = urls.flatMap(u => ['-i', u]);
+
+    const ff = spawn('ffmpeg', [
+      '-v', 'error',
+      ...inputs,
+      '-c', 'copy',
+      '-movflags', 'frag_keyframe+empty_moov+default_base_moof',
+      '-f', 'mp4',
+      'pipe:1'
+    ], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+    res.setHeader('Content-Type', 'video/mp4');
+    ff.stdout.pipe(res);
+    ff.stderr.on('data', d => console.error('[preview ffmpeg]', d.toString().trim()));
+    ff.on('error', () => res.end());
+    res.on('close', () => ff.kill('SIGKILL')); // stop when the viewer leaves
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

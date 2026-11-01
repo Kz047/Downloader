@@ -1772,7 +1772,11 @@
 
         const formats = data.formats || [];
         const playableFormat = formats.find(f => f.ext === 'mp4' && f.vcodec !== 'none' && f.acodec !== 'none' && f.url);
-        if (playableFormat) currentPreviewUrl = playableFormat.url;
+        if (platform === 'threads') {
+          if (playableFormat) currentPreviewUrl = playableFormat.url;
+        } else {
+          currentPreviewUrl = '/api/preview?url=' + encodeURIComponent(apiUrl);
+        }
 
         buildStrictResSelector(formats);
       }
