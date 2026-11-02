@@ -168,7 +168,6 @@ Browser ──→ Server (Node.js) ──→ yt-dlp ──→ YouTube / TikTok /
 
 1. Browser kirim link ke server
 2. Untuk YouTube/Facebook/Instagram/TikTok/X: server panggil **yt-dlp** (tool Python)
-3. Untuk **Threads**: server panggil API `lovethreads.net` sebagai proxy
 4. **ffmpeg** dipakai untuk menggabungkan video + audio (kalau terpisah) dan konversi ke MP3
 5. File dikirim ke browser, langsung terunduh
 
